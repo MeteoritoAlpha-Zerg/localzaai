@@ -129,7 +129,7 @@ metadata:
   agent_uuid: b6a23490576649c1aa5bfb0dd1f9c3db
   status: IDLE
   max_depth: 500
-  export_timestamp: '2025-08-27 18:06:46.500652'
+  export_timestamp: '2025-08-27 18:21:20.161479'
   environment_type: FSEnvironment
   environment_name: fs_environment
   environment_root: /tmp/zerg/agent_workspace_e2hl0ppv/environment
