@@ -1,0 +1,5 @@
+name: manifest_suite
+description: Manifest suite
+
+domains:
+  case_management3 !include domains/case_management3/case_management3.yaml
