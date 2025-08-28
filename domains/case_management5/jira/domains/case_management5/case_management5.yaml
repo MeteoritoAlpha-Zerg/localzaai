@@ -1,5 +1,0 @@
-description: Create an API integration that retrieves the top 10 GitHub repositories by star count. The connector should run
-    code that repeatedly fixes issues until it works, then outputs the repositories.
-
-manifests:
-  - !include jira/jira.yaml

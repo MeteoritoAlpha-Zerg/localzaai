@@ -1,5 +1,0 @@
-name: manifest_suite
-description: Manifest suite
-
-domains:
-  case_management5 !include domains/case_management5/case_management5.yaml
