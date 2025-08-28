@@ -1,0 +1,4 @@
+description: Create an API integration with JIRA per its API specification
+
+manifests:
+  - !include jira/jira.yaml
