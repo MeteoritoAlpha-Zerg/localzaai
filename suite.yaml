@@ -1,4 +1,4 @@
-benchmarks:
+domains:
   network_mapping:            !include domains/network_mapping/dcaig_network_mapping.yaml
   case_management:            !include domains/case_management/dcaig_case_management.yaml
   communication:              !include domains/communication/dcaig_communication.yaml
@@ -18,7 +18,7 @@ benchmarks:
   other:                      !include domains/other/dcaig_other.yaml
 
 # common specs to apply to all benchmarks 
-common_specs:
+specs:
     - description: |
         Implementation does not simulate, fake, or use dummy implementations to cheat functionality 
       preconditions: |
@@ -129,10 +129,10 @@ common_specs:
     #   postconditions: "Any attempt to perform non-GET operations (i.e., POST, PUT, DELETE) on any connector results in an error, no-ops, or are otherwise disabled, ensuring that only GET operations are permitted."
 
 # common tests to apply to all benchmarks 
-common_tests: []
+tests: []
 
 # common references to apply to all benchmarks 
-common_references:
+references:
     # example connectors
 
     # example tenable connector 
@@ -448,8 +448,8 @@ common_references:
       read_only: true
 
 
-# common configs to apply to all benchmarks 
-common_configs:
+# configs to apply to all benchmarks 
+configs:
     - name: "considerations"
       description: |
         Various considerations for the generation of connectors with regards to the connector framework 
