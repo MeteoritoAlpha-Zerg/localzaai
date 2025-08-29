@@ -1,0 +1,248 @@
+# Proofpoint Connector
+name: "proofpoint"
+category: "Security Intelligence"
+description: "Create an API integration with Proofpoint Threat Intelligence APIs per its API specification"
+
+specs:
+  - description: |
+      The Proofpoint Connector is able to authenticate with Proofpoint APIs per its implementation in the code
+      environment only
+    preconditions: |
+      This spec has no strict preconditions
+    postconditions: |
+      The Proofpoint connector is able to authenticate properly with a Proofpoint instance;
+      The Proofpoint connector config is of type ConnectorConfig and not AlertProviderConnectorConfig;
+
+  - description: |
+      get_query_target_options enumerates Proofpoint API targets
+    preconditions: |
+      An existing Proofpoint API principal and secret
+    postconditions: |
+      Possible to retrieve the list of Proofpoint API query targets using get_query_target_options
+      and to then use this to set the options in a given ProofpointConnectorConfig which is 
+      subclassed from ConnectorConfig - adheres to example API response in query_target_options.py;
+      These must be real API targets, and not simulated;
+    function_to_run: !python/file 3-test_query_target_options.py
+
+  - description: |
+      Proofpoint Connector is able to fetch threat summary data from the Threats API
+    preconditions: |
+      A valid authenticated session with Proofpoint
+    postconditions: |
+      Connector successfully fetches and returns threat summary data for a specified threat ID;
+      The response includes all relevant threat details such as type, category, severity, and associated metadata;
+
+  - description: |
+      Proofpoint Connector is able to fetch forensic evidence data from the Forensics API
+    preconditions: |
+      A valid authenticated session with Proofpoint
+    postconditions: |
+      Connector successfully retrieves forensic evidence for specified threats or campaigns;
+      The response includes all available forensic evidence types and their details;
+
+  - description: |
+      Proofpoint Connector is able to query campaign data from the Campaign API
+    preconditions: |
+      A valid authenticated session with Proofpoint
+    postconditions: |
+      Connector successfully retrieves campaign data for specified time periods;
+      Connector can fetch detailed information for a specific campaign ID;
+
+  # TODO: need unit tests for these
+  # - description: |
+  #     Proofpoint Connector is able to decode URLs using the URL Decoder API
+  #   preconditions: |
+  #     A valid authenticated session with Proofpoint
+  #   postconditions: |
+  #     Connector successfully decodes Proofpoint-rewritten URLs back to their original form;
+  #     The response includes all available metadata about the decoded URLs;
+
+  # - description: |
+  #     Proofpoint Connector is able to fetch Very Attacked People (VAP) data from the People API
+  #   preconditions: |
+  #     A valid authenticated session with Proofpoint
+  #   postconditions: |
+  #     Connector successfully retrieves VAP data for specified time periods;
+  #     The response includes identity and attack statistics for each person;
+
+  # - description: |
+  #     Proofpoint Connector is able to fetch Top Clickers data from the People API
+  #   preconditions: |
+  #     A valid authenticated session with Proofpoint
+  #   postconditions: |
+  #     Connector successfully retrieves top clickers data for specified time periods;
+  #     The response includes identity and click statistics for each person;
+
+  - description: |
+      The Proofpoint connector implements proper error handling and respects API throttle limits
+    preconditions: |
+      A valid authenticated session with Proofpoint
+    postconditions: |
+      Connector properly handles API errors such as 400, 401, 404, and 500 responses;
+      Connector implements retry logic and respects the documented throttle limits for each endpoint;
+      Connector does not exceed the maximum number of requests per 24-hour period for each endpoint;
+
+tests:
+  - description: |
+      This checks to see that the connector is able to return a listing of tools
+    preconditions: |
+      A data connector implementation per the provided interfaces
+    postconditions: |
+      The data connector is able to provide a list of supported tools and interfaces
+    function_to_run: !python/file 1-test_tools_interface.py
+
+  - description: |
+      This checks that the connector can successfully verify its connection
+    preconditions: |
+      A connector implementation adhering to ConnectorInterface is available as 'connector'
+    postconditions: |
+      The check_connection method returns True if the connector is correctly configured
+    function_to_run: !python/file 2-test_connector_check_connection.py
+
+  - description: |
+      Test Proofpoint API target enumeration by way of query target options
+    preconditions: |
+      An existing Proofpoint API principal and secret
+    postconditions: |
+      Possible to retrieve the list of Proofpoint API query targets using get_query_target_options;
+      The ProofpointConnectorConfig is correctly subclassed from ConnectorConfig;
+      The returned ConnectorQueryTargetOptions contains valid definitions and selectors;
+      These must be real API targets, and not simulated;
+    function_to_run: !python/file 3-test_query_target_options.py
+
+  - description: |
+      Test fetching campaign IDs and details
+    preconditions: |
+      An existing Proofpoint API principal and secret
+    postconditions: |
+      Connector successfully retrieves campaign IDs for a specified time period;
+      Given the API's 24 hour limit, the tool should break apart time ranges longer than this and
+      run multiple successive queries to allow for an arbitrary time range up to at least 30 days;
+      Connector successfully retrieves detailed information for a specific campaign ID;
+    function_to_run: !python/file 4-test_campaign_data.py
+
+  - description: |
+      Test fetching threat summary information for a specified threat ID
+    preconditions: |
+      An existing Proofpoint API token and credentials
+    postconditions: |
+      Connector successfully retrieves threat summary details;
+      Response includes appropriate threat metadata, severity, and categorization;
+    function_to_run: !python/file 5-test_threat_summary.py
+
+  - description: |
+      Test fetching forensic evidence for a specified threat or campaign
+    preconditions: |
+      An existing Proofpoint API principal and secret
+    postconditions: |
+      Connector successfully retrieves forensic evidence;
+      Response includes appropriate evidence types and platforms;
+    function_to_run: !python/file 6-test_forensic_evidence.py
+
+
+
+connector_references: 
+  - description: "Proofpoint SVG logo"
+    file_path: "assets/proofpoint.svg"
+    environment_path: "connectors/proofpoint/proofpoint.svg"
+    format: "svg"
+    required: true
+    read_only: true
+
+  - description: "Campaign API specification and documentation"
+    file_path: "domains/threat_intelligence/proofpoint/api/Campaign API.pdf"
+    workspace_path: "proofpoint/api/Campaign API.pdf"
+    format: "pdf"
+    required: true
+    read_only: true
+
+  - description: "Forensics API specification and documentation"
+    file_path: "domains/threat_intelligence/proofpoint/api/Forensics API.pdf"
+    workspace_path: "proofpoint/api/Forensics API.pdf"
+    format: "pdf"
+    required: true
+    read_only: true
+
+  - description: "People API specification and documentation"
+    file_path: "domains/threat_intelligence/proofpoint/api/People API.pdf"
+    workspace_path: "proofpoint/api/People API.pdf"
+    format: "pdf"
+    required: true
+    read_only: true
+
+  - description: "Threats API specification and documentation"
+    file_path: "domains/threat_intelligence/proofpoint/api/Threats API.pdf"
+    workspace_path: "proofpoint/api/Threats API.pdf"
+    format: "pdf"
+    required: true
+    read_only: true
+
+  - description: "URL Decoder API specification and documentation"
+    file_path: "domains/threat_intelligence/proofpoint/api/URL Decoder API.pdf"
+    workspace_path: "proofpoint/api/URL Decoder API.pdf"
+    format: "pdf"
+    required: true
+    read_only: true
+
+user_references: []
+
+configs:
+  - name: "proofpoint_api_host"
+    description: "The base URL for Proofpoint API (typically tap-api-v2.proofpoint.com)"
+    value: !env/var 
+
+  - name: "proofpoint_principal"
+    description: "The service principal (username) for authenticating with Proofpoint APIs"
+    value: !env/var 
+
+  - name: "proofpoint_secret"
+    description: "The service secret (password) for authenticating with Proofpoint APIs"
+    value: !env/var 
+
+  - name: "proofpoint_api_request_timeout"
+    description: "Request timeout in seconds"
+    value: 30
+
+  - name: "proofpoint_api_max_retries"
+    description: "Number of times to retry API requests upon failure"
+    value: 3
+
+  - name: "threat_lookback_days"
+    description: "Number of days to look back for threat data"
+    value: 30
+
+  - name: "enable_threat_caching"
+    description: "Enable caching of threat data to reduce API calls"
+    value: true
+
+  - name: "campaign_lookback_days"
+    description: "Number of days to look back for campaign data"
+    value: 30
+
+  - name: "people_data_window"
+    description: "Window size in days for people data (accepted values: 14, 30, 90)"
+    value: 30
+
+  - name: "threat_severity_threshold"
+    description: "Minimum severity threshold for including threats (0-1000)"
+    value: 50
+
+  - name: "additional considerations"
+    description: |
+      Additional considerations for the generation of specifically the Proofpoint connector 
+      with regards to the connector framework as provided - please keep these strongly in mind
+    value: [
+      "use HTTP Basic Authorization with principal ID and secret as the primary authentication method",
+      "authentication should not be a tool, tools should handle authentication when used (so should not be explicitly exposed)",
+      "handle Proofpoint-specific error cases and ensure proper error messages are returned",
+      "consider Proofpoint's rate limiting and throttle limits for each endpoint",
+      "implement specialized security-focused query tools to retrieve threat and campaign data",
+      "ensure proper handling of timestamps in UTC format as required by the API",
+      "implement proper pagination for endpoints that support it (size and page parameters)",
+      "support both threat-specific and campaign-specific forensic evidence retrieval",
+      "handle various evidence types returned by the Forensics API (attachment, behavior, cookie, dns, etc.)",
+      "implement URL decoding functionality with proper error handling",
+      "support retrieval of Very Attacked People (VAP) data with appropriate filtering",
+      "support retrieval of Top Clickers data with appropriate filtering",
+      "implement caching mechanisms to reduce API calls when appropriate"
+    ]

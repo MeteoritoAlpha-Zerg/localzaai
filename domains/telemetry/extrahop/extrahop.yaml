@@ -1,0 +1,161 @@
+# ExtraHop
+name: "extrahop"
+category: "Network Security"
+description: "Create an API integration with ExtraHop to ingest, analyze, and process network security telemetry, anomaly detection data, and real-time alerts"
+
+specs:
+  - description: |
+      The ExtraHop Connector is able to authenticate with ExtraHop per its implementation in the code 
+      environment only
+    preconditions: |
+      This spec has no strict preconditions
+    postconditions: |
+      The ExtraHop connector is able to authenticate properly with an ExtraHop instance;
+      The ExtraHop connector config is of type ConnectorConfig and not AlertProviderConnectorConfig;
+
+  - description: |
+      ExtraHop Connector is able to list sensor networks per user of get_query_target_options
+    preconditions: |
+      A valid authenticated session with ExtraHop
+    postconditions: |
+      Connector successfully enumerates sensor networks to populate the target options of the ExtraHopTarget;
+
+  - description: |
+      ExtraHop Connector is able to retrieve network telemetry and security data
+    preconditions: |
+      A valid authenticated session with ExtraHop
+    postconditions: |
+      Per the configuration as contained in ExtraHopTarget as provided to ExtraHopConnectorTools, it is possible
+      to get network telemetry along with their respective metadata and security analysis details
+      as may be relevant;
+      Ensure that the respective get_extrahop_telemetry function in the ExtraHopConnectorTools is not hardcoding
+      any return values;
+
+  - description: |
+      ExtraHop Connector is able to retrieve anomaly detection data and threat indicators
+    preconditions: |
+      A valid authenticated session with ExtraHop
+    postconditions: |
+      Connector successfully retrieves anomaly detection data and threat indicators for the selected networks provided as params
+      to the anomaly detection tool
+
+  - description: |
+      ExtraHop Connector is able to generate network security analytics and real-time monitoring
+    preconditions: |
+      A valid authenticated session with ExtraHop
+    postconditions: |
+      Connector successfully generates network security analytics and real-time monitoring based on network telemetry
+      and threat detection rules
+
+tests:
+  - description: |
+      This checks to see that the connector is able to return a listing of tools
+    preconditions: |
+      A data connector implementation per the provided interfaces
+    postconditions: |
+      The data connector is able to provide a list of supported tools and interfaces
+    function_to_run: !python/file 1-test_tools_interface.py
+
+  - description: |
+      This checks that the connector can successfully verify its connection
+    preconditions: |
+      A connector implementation adhering to ConnectorInterface is available as 'connector'
+    postconditions: |
+      The check_connection method returns True if the connector is correctly configured
+    function_to_run: !python/file 2-test_connector_check_connection.py
+
+  - description: |
+      get_query_target_options enumerates ExtraHop sensor networks
+    preconditions: |
+      An existing ExtraHop API credentials
+    postconditions: |
+      Possible to retrieve the list of ExtraHop sensor networks using get_query_target_options
+      and to then use this to set the options in a given ExtraHopConnectorConfig which is 
+      subclassed from ConnectorConfig - adheres to example API response in query_target_options.py;
+      These must be real sensor networks, and not simulated;
+    function_to_run: !python/file 3-test_query_target_options.py
+
+  - description: |
+      List ExtraHop network telemetry for selected sensor networks in target
+    preconditions: |
+      An existing ExtraHop API credentials
+    postconditions: |
+      Possible to retrieve the list of ExtraHop network telemetry by way of connector tools;
+      This list includes details of the telemetry data to be listed in results; 
+      These must be real telemetry data, and not simulated;
+    function_to_run: !python/file 4-test_network_telemetry.py
+
+  - description: |
+      Retrieve anomaly detection data and threat indicators for selected networks
+    preconditions: |
+      An existing ExtraHop API credentials
+    postconditions: |
+      Possible to retrieve anomaly detection data and threat indicators for the selected networks as passed as params to the connector tools;
+      This list only includes anomaly data of the target networks to be listed in results; 
+      These must be real anomaly detection data, and not simulated;
+    function_to_run: !python/file 5-test_anomaly_detection.py
+
+  - description: |
+      Generate network security analytics and real-time monitoring
+    preconditions: |
+      An existing ExtraHop API credentials
+    postconditions: |
+      Possible to generate network security analytics and real-time monitoring based on network telemetry;
+      Results should contain meaningful security metrics and monitoring data;
+      These must be real analytics data, and not simulated;
+    function_to_run: !python/file 6-test_security_analytics.py
+
+connector_references: 
+  - description: "ExtraHop logo"
+    file_path: "assets/extrahop.png"
+    environment_path: "connectors/extrahop/extrahop.png"
+    format: "png"
+    required: true
+    read_only: true
+
+user_references: []
+
+configs:
+  - name: "extrahop_server_url"
+    description: "ExtraHop server URL, note this should be included as server_url in ExtraHopConnectorConfig"
+    value: !env/var 
+
+  - name: "extrahop_api_key"
+    description: "API Key for authenticating with ExtraHop, note this should be included as api_key in ExtraHopConnectorConfig"
+    value: !env/var 
+
+  - name: "extrahop_api_secret"
+    description: "API Secret for authenticating with ExtraHop, note this should be included as api_secret in ExtraHopConnectorConfig"
+    value: !env/var 
+
+  - name: "extrahop_verify_ssl"
+    description: "Whether to verify SSL certificates when connecting to ExtraHop"
+    value: true
+
+  - name: "extrahop_api_request_timeout"
+    description: "Request timeout in seconds"
+    value: 60
+
+  - name: "extrahop_api_max_retries"
+    description: "Number of times to retry API requests upon failure"
+    value: 3
+
+  - name: "extrahop_default_page_size"
+    description: "Default number of results to return per page"
+    value: 1000
+
+  - name: "additional considerations"
+    description: |
+      Additional considerations for the generation of specifically the ExtraHop connector 
+      with regards to the connector framework as provided - please keep these strongly in mind
+    value: [
+      "ExtraHopConnectorConfig should derive from ConnectorConfig, this is not a connector of type AlertProviderConnectorConfig config",
+      "authentication should not be a tool, tools should handle authentication when used (so should not be explicitly exposed)",
+      "utilize the query target options to determine which sensor networks are valid for the target, and then use the target to select which networks to actually pull data from for the respective tools as shown in the unit tests",
+      "handle ExtraHop-specific data structures like detections, devices, protocols, and metrics appropriately",
+      "respect ExtraHop API rate limits and implement proper error handling for telemetry data",
+      "support different ExtraHop modules like Reveal(x), Command Platform, and Trace as needed",
+      "handle time-based queries and filtering for network telemetry and analytics data",
+      "support ExtraHop's wire data analysis and behavioral analytics capabilities"
+    ]
+# !ExtraHop

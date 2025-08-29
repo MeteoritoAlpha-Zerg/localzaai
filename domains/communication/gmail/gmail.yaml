@@ -1,0 +1,186 @@
+# Gmail
+name: "gmail"
+category: "Email & Communication"
+description: "Create an API integration with Gmail for sending and retrieving emails"
+
+specs:
+  - description: |
+      The Gmail Connector is able to authenticate with Gmail per its implementation in the code 
+      environment only
+    preconditions: |
+      This spec has no strict preconditions
+    postconditions: |
+      The Gmail connector is able to authenticate properly with a Gmail instance;
+      The Gmail connector config is of type ConnectorConfig and not AlertProviderConnectorConfig;
+
+  - description: |
+      Gmail Connector is able to list Gmail labels per user of get_query_target_options
+    preconditions: |
+      A valid authenticated session with Gmail
+    postconditions: |
+      Connector successfully enumerates labels to populate the target options of the GmailTarget;
+
+  - description: |
+      Gmail Connector is able to retrieve email messages
+    preconditions: |
+      A valid authenticated session with Gmail
+    postconditions: |
+      Per the configuration as contained in GmailTarget as provided to GmailConnectorTools, it is possible
+      to get a list of email messages along with their respective content and metadata
+      as may be relevant;
+      Ensure that the respective get_gmail_messages function in the GmailConnectorTools is not hardcoding
+      any return values;
+
+  - description: |
+      Gmail Connector is able to send email messages
+    preconditions: |
+      A valid authenticated session with Gmail
+    postconditions: |
+      Connector successfully sends email messages with specified recipients, subject, and content
+      through the Gmail API
+
+  - description: |
+      Gmail Connector is able to search and filter email messages
+    preconditions: |
+      A valid authenticated session with Gmail
+    postconditions: |
+      Connector successfully searches and filters email messages based on query parameters,
+      date ranges, and label filters
+
+tests:
+  - description: |
+      This checks to see that the connector is able to return a listing of tools
+    preconditions: |
+      A data connector implementation per the provided interfaces
+    postconditions: |
+      The data connector is able to provide a list of supported tools and interfaces
+    function_to_run: !python/file 1-test_tools_interface.py
+
+  - description: |
+      This checks that the connector can successfully verify its connection
+    preconditions: |
+      A connector implementation adhering to ConnectorInterface is available as 'connector'
+    postconditions: |
+      The check_connection method returns True if the connector is correctly configured
+    function_to_run: !python/file 2-test_connector_check_connection.py
+
+  - description: |
+      get_query_target_options enumerates Gmail labels
+    preconditions: |
+      An existing Gmail OAuth credentials and API access
+    postconditions: |
+      Possible to retrieve the list of Gmail labels using get_query_target_options
+      and to then use this to set the options in a given GmailConnectorConfig which is 
+      subclassed from ConnectorConfig - adheres to example API response in query_target_options.py;
+      These must be real labels, and not simulated;
+    function_to_run: !python/file 3-test_query_target_options.py
+
+  - description: |
+      Retrieve Gmail messages for selected labels
+    preconditions: |
+      An existing Gmail OAuth credentials and API access
+    postconditions: |
+      Possible to retrieve Gmail messages by way of connector tools;
+      This list includes message details and content to be listed in results; 
+      These must be real messages, and not simulated;
+    function_to_run: !python/file 4-test_message_retrieval.py
+
+  - description: |
+      Send email messages through Gmail
+    preconditions: |
+      An existing Gmail OAuth credentials and API access
+    postconditions: |
+      Possible to send email messages through Gmail API as passed as params to the connector tools;
+      This includes sending to specified recipients with subject and content; 
+      These must be real email sends, and not simulated;
+    function_to_run: !python/file 5-test_email_sending.py
+
+  - description: |
+      Search and filter Gmail messages
+    preconditions: |
+      An existing Gmail OAuth credentials and API access
+    postconditions: |
+      Possible to search and filter Gmail messages using query parameters passed to the connector tools;
+      This includes filtering by date ranges, labels, and search queries; 
+      These must be real search results, and not simulated;
+    function_to_run: !python/file 6-test_email_search.py
+
+connector_references: 
+  - description: "GMail logo"
+    file_path: "assets/gmail.png"
+    environment_path: "connectors/gmail/gmail.png"
+    format: "png"
+    required: true
+    read_only: true
+
+user_references: []
+
+configs:
+  - name: "gmail_oauth_client_id"
+    description: "OAuth Client ID for authenticating with Gmail API, note this should be included as oauth_client_id in GmailConnectorConfig"
+    value: !env/var 
+
+  - name: "gmail_oauth_client_secret"
+    description: "OAuth Client Secret for authenticating with Gmail API, note this should be included as oauth_client_secret in GmailConnectorConfig"
+    value: !env/var 
+
+  - name: "gmail_oauth_refresh_token"
+    description: "OAuth Refresh Token for maintaining Gmail API access, note this should be included as oauth_refresh_token in GmailConnectorConfig"
+    value: !env/var 
+
+  - name: "gmail_api_base_url"
+    description: "Base URL for Gmail API (defaults to https://gmail.googleapis.com/gmail/v1)"
+    value: "https://gmail.googleapis.com/gmail/v1"
+
+  - name: "gmail_api_version"
+    description: "Gmail API version to use (defaults to v1)"
+    value: "v1"
+
+  - name: "gmail_api_request_timeout"
+    description: "Request timeout in seconds"
+    value: 30
+
+  - name: "gmail_api_max_retries"
+    description: "Number of times to retry API requests upon failure"
+    value: 3
+
+  - name: "gmail_rate_limit_delay"
+    description: "Delay in seconds between API requests to respect rate limiting"
+    value: 0.1
+
+  - name: "gmail_max_results"
+    description: "Maximum number of messages to retrieve per request"
+    value: 100
+
+  - name: "gmail_include_attachments"
+    description: "Include email attachments in message retrieval"
+    value: false
+
+  - name: "gmail_include_headers"
+    description: "Include full email headers in message retrieval"
+    value: true
+
+  - name: "gmail_batch_size"
+    description: "Number of messages to process in batch operations"
+    value: 50
+
+  - name: "additional considerations"
+    description: |
+      Additional considerations for the generation of specifically the Gmail connector 
+      with regards to the connector framework as provided - please keep these strongly in mind
+    value: [
+      "GmailConnectorConfig should derive from ConnectorConfig, this is not a connector of type AlertProviderConnectorConfig config",
+      "authentication should not be a tool, tools should handle authentication when used (so should not be explicitly exposed)",
+      "utilize the query target options to determine which labels are valid for the target, and then use the target to select which labels to actually pull data from for the respective tools as shown in the unit tests",
+      "implement proper OAuth 2.0 flow handling with refresh token management for Gmail API access",
+      "handle Gmail API rate limiting and quota restrictions gracefully with appropriate retry logic",
+      "respect Gmail API scopes and permissions - ensure proper scope configuration for read/send operations",
+      "implement proper MIME message parsing and construction for email content and attachments",
+      "handle large email volumes efficiently with pagination and batch processing",
+      "ensure proper handling of email threading and conversation grouping",
+      "implement security best practices for handling sensitive email content and metadata",
+      "support Gmail's label system for email organization and filtering",
+      "handle different email formats (plain text, HTML, multipart) appropriately",
+      "implement proper error handling for common Gmail API errors (quota exceeded, invalid tokens, etc.)"
+    ]
+# !Gmail

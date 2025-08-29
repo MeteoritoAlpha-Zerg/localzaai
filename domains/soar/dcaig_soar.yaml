@@ -1,0 +1,9 @@
+# DCAIG SOAR - security orchestration, automation, and response Connectors
+
+- !include splunk_phantom/splunk_phantom.yaml
+- !include cortex_xsoar/cortex_xsoar.yaml
+- !include siemplify/siemplify.yaml
+- !include rapid7_insightidr/rapid7_insightidr.yaml
+- !include revelstoke/revelstoke.yaml
+- !include reach/reach.yaml
+- !include swimlane/swimlane.yaml

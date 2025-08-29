@@ -1,0 +1,159 @@
+# Darktrace
+name: "darktrace"
+category: "AI Security & Threat Detection"
+description: "Create an API integration with Darktrace to ingest, analyze, and process security anomalies, cyber threat intelligence, and real-time alerts"
+
+specs:
+  - description: |
+      The Darktrace Connector is able to authenticate with Darktrace per its implementation in the code 
+      environment only
+    preconditions: |
+      This spec has no strict preconditions
+    postconditions: |
+      The Darktrace connector is able to authenticate properly with a Darktrace instance;
+      The Darktrace connector config is of type ConnectorConfig and not AlertProviderConnectorConfig;
+
+  - description: |
+      Darktrace Connector is able to list Darktrace models and devices per user of get_query_target_options
+    preconditions: |
+      A valid authenticated session with Darktrace
+    postconditions: |
+      Connector successfully enumerates models and devices to populate the target options of the DarktraceTarget;
+
+  - description: |
+      Darktrace Connector is able to retrieve model and device information
+    preconditions: |
+      A valid authenticated session with Darktrace
+    postconditions: |
+      Per the configuration as contained in DarktraceTarget as provided to DarktraceConnectorTools, it is possible
+      to get a list of models and devices along with their respective metadata and other relevant details
+      as may be relevant for AI security analysis and threat detection;
+      Ensure that the respective get_darktrace_models function in the DarktraceConnectorTools is not hardcoding
+      any return values;
+
+  - description: |
+      Darktrace Connector is able to retrieve security anomalies and alerts from selected models and devices
+    preconditions: |
+      A valid authenticated session with Darktrace
+    postconditions: |
+      Connector successfully retrieves security anomalies and alerts for the selected models and devices provided as params
+      to the security tools, supporting AI-powered threat detection and analysis
+
+  - description: |
+      Darktrace Connector is able to retrieve threat intelligence and cyber events from Darktrace platform
+    preconditions: |
+      A valid authenticated session with Darktrace
+    postconditions: |
+      Connector successfully retrieves threat intelligence and cyber events from Darktrace for security analysis and response
+
+tests:
+  - description: |
+      This checks to see that the connector is able to return a listing of tools
+    preconditions: |
+      A data connector implementation per the provided interfaces
+    postconditions: |
+      The data connector is able to provide a list of supported tools and interfaces
+    function_to_run: !python/file 1-test_tools_interface.py
+
+  - description: |
+      This checks that the connector can successfully verify its connection
+    preconditions: |
+      A connector implementation adhering to ConnectorInterface is available as 'connector'
+    postconditions: |
+      The check_connection method returns True if the connector is correctly configured
+    function_to_run: !python/file 2-test_connector_check_connection.py
+
+  - description: |
+      get_query_target_options enumerates Darktrace models and devices
+    preconditions: |
+      An existing Darktrace instance with valid API credentials
+    postconditions: |
+      Possible to retrieve the list of Darktrace models and devices using get_query_target_options
+      and to then use this to set the options in a given DarktraceConnectorConfig which is 
+      subclassed from ConnectorConfig - adheres to example API response in query_target_options.py;
+      These must be real models and devices, and not simulated;
+    function_to_run: !python/file 3-test_query_target_options.py
+
+  - description: |
+      List Darktrace models and devices for selected targets
+    preconditions: |
+      An existing Darktrace instance with valid API credentials
+    postconditions: |
+      Possible to retrieve the list of Darktrace models and devices by way of connector tools;
+      This list includes details of the models and devices including metadata and AI detection capabilities; 
+      These must be real models and devices, and not simulated;
+    function_to_run: !python/file 4-test_list_models.py
+
+  - description: |
+      Retrieve security anomalies and alerts from selected Darktrace models and devices
+    preconditions: |
+      An existing Darktrace instance with valid API credentials
+    postconditions: |
+      Possible to retrieve security anomalies and alerts from the selected Darktrace models and devices as passed as params to the connector tools;
+      This includes AI-detected anomalies and security alerts for analysis; 
+      These must be real anomalies and alerts, and not simulated;
+    function_to_run: !python/file 5-test_anomalies_alerts.py
+
+  - description: |
+      Retrieve threat intelligence and cyber events from Darktrace platform
+    preconditions: |
+      An existing Darktrace instance with valid API credentials
+    postconditions: |
+      Possible to retrieve threat intelligence and cyber events from Darktrace platform;
+      This includes threat data and security events for analysis and response; 
+      These must be real threat intelligence and events, and not simulated;
+    function_to_run: !python/file 6-test_threat_intelligence.py
+
+connector_references: 
+  - description: "Darktrace logo"
+    file_path: "assets/darktrace.png"
+    environment_path: "connectors/darktrace/darktrace.png"
+    format: "png"
+    required: true
+    read_only: true
+
+user_references: []
+
+configs:
+  - name: "darktrace_url"
+    description: "The base URL of the Darktrace instance, note this should be included as url in DarktraceConnectorConfig"
+    value: !env/var 
+
+  - name: "darktrace_public_token"
+    description: "Public token for authenticating with Darktrace API, note this should be included as public_token in DarktraceConnectorConfig"
+    value: !env/var 
+
+  - name: "darktrace_private_token"
+    description: "Private token for authenticating with Darktrace API, note this should be included as private_token in DarktraceConnectorConfig"
+    value: !env/var
+
+  - name: "darktrace_api_request_timeout"
+    description: "Request timeout in seconds"
+    value: 120
+
+  - name: "darktrace_api_max_retries"
+    description: "Number of times to retry API requests upon failure"
+    value: 3
+
+  - name: "darktrace_verify_ssl"
+    description: "Whether to verify SSL certificates"
+    value: true
+
+  - name: "darktrace_max_results"
+    description: "Maximum number of results to return per API call"
+    value: 1000
+
+  - name: "additional considerations"
+    description: |
+      Additional considerations for the generation of specifically the Darktrace connector 
+      with regards to the connector framework as provided - please keep these strongly in mind
+    value: [
+      "DarktraceConnectorConfig should derive from ConnectorConfig, this is not a connector of type AlertProviderConnectorConfig config",
+      "authentication should not be a tool, tools should handle authentication when used (so should not be explicitly exposed)",
+      "utilize the query target options to determine which models and devices are valid for the target, and then use the target to select which models and devices to actually pull data from for the respective tools as shown in the unit tests",
+      "support Darktrace's public/private token authentication method",
+      "handle AI model data appropriately for anomaly detection and threat analysis",
+      "support Darktrace's real-time threat detection and response capabilities",
+      "integrate with Darktrace's Antigena autonomous response system data"
+    ]
+# !Darktrace

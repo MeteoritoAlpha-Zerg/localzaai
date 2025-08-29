@@ -1,0 +1,11 @@
+# SIEM - security information and event management 
+
+- !include msft_sentinel/msft_sentinel.yaml
+- !include splunk/splunk.yaml
+- !include crowdstrike_humio/crowdstrike_humio.yaml
+- !include cortex_xsiam/cortex_xsiam.yaml
+- !include ibm_qradar/ibm_qradar.yaml
+- !include sumo_logic/sumo_logic.yaml
+- !include google_chronicle/google_chronicle.yaml
+- !include arcsight/arcsight.yaml
+- !include devo/devo.yaml

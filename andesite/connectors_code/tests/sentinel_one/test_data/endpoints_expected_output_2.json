@@ -1,0 +1,116 @@
+{
+    "data": [
+        {
+            "activeCoverage": [
+                "test"
+            ],
+            "alerts": [
+                {
+                    "count": 2,
+                    "severity": "test"
+                }
+            ],
+            "alertsCount": [
+                {
+                    "count": 2,
+                    "severity": "test"
+                }
+            ],
+            "applications": [
+                {
+                    "name": "test",
+                    "vendorName": "test",
+                    "version": "test"
+                },
+                {
+                    "name": "test",
+                    "vendorName": "test",
+                    "version": "test"
+                },
+                {
+                    "name": "test",
+                    "vendorName": "test",
+                    "version": "test"
+                }
+            ],
+            "architecture": "test",
+            "assetContactEmail": "test",
+            "assetCriticality": "test",
+            "assetEnvironment": "test",
+            "assetStatus": "test",
+            "category": "test",
+            "coreCount": 8,
+            "cpu": "test",
+            "domain": "test",
+            "firstSeenDt": "test",
+            "gatewayIps": [
+                "0.0.0.0"
+            ],
+            "gatewayMacs": [
+                "00:00:00:00:00:00"
+            ],
+            "id": "test",
+            "idSecondary": [
+                "abc"
+            ],
+            "internalIps": [
+                "10.0.0.0"
+            ],
+            "internalIpsV6": [
+                "test"
+            ],
+            "ipAddress": "test",
+            "lastActiveDt": "test",
+            "lastRebootDt": "test",
+            "macAddresses": [
+                "test"
+            ],
+            "memory": 1234,
+            "memoryReadable": "test",
+            "missingCoverage": [],
+            "name": "test",
+            "networkInterfaces": [
+                {
+                    "gatewayIp": "test",
+                    "gatewayMac": "test",
+                    "ip": "test",
+                    "mac": "test",
+                    "name": "test",
+                    "subnet": "test"
+                }
+            ],
+            "os": "test",
+            "osFamily": "test",
+            "osNameVersion": "test",
+            "osVersion": "test",
+            "resourceType": "test",
+            "riskFactors": [
+                "Unresolved Alerts"
+            ],
+            "s1AccountId": "test",
+            "s1AccountName": "test",
+            "s1GroupId": "test",
+            "s1GroupName": "test",
+            "s1ManagementId": 1234,
+            "s1ScopeId": "test",
+            "s1ScopeLevel": "test",
+            "s1ScopePath": "test",
+            "s1ScopeType": 1,
+            "s1SiteId": "test",
+            "s1SiteName": "test",
+            "s1UpdatedAt": "test",
+            "serialNumber": "test",
+            "subCategory": "test",
+            "subnets": [
+                "10.0.0.0/28"
+            ],
+            "surfaces": [
+                "Endpoint"
+            ]
+        }
+    ],
+    "pagination": {
+        "nextCursor": null,
+        "totalItems": 1
+    }
+}

@@ -1,0 +1,162 @@
+# RSA Archer
+name: "rsa_archer"
+category: "Governance, Risk & Compliance"
+description: "Create an API integration with RSA Archer per its API specification"
+
+specs:
+  - description: |
+      The RSA Archer Connector is able to authenticate with RSA Archer APIs per its implementation in the code 
+      environment only
+    preconditions: |
+      Valid RSA Archer credentials (username/password or API key) are required for authentication
+    postconditions: |
+      The RSA Archer connector is able to authenticate properly with RSA Archer APIs using session-based authentication;
+      The RSA Archer connector config is of type ConnectorConfig and not AlertProviderConnectorConfig;
+
+  - description: |
+      RSA Archer Connector is able to list available data sources per user of get_query_target_options
+    preconditions: |
+      A valid authenticated session with RSA Archer APIs
+    postconditions: |
+      Connector successfully enumerates available data sources (applications, records, incidents, risks, controls) 
+      to populate the target options of the RSAArcherTarget;
+
+  - description: |
+      RSA Archer Connector is able to retrieve GRC records and compliance data
+    preconditions: |
+      A valid authenticated session with RSA Archer APIs
+    postconditions: |
+      Per the configuration as contained in RSAArcherTarget as provided to RSAArcherConnectorTools, it is possible
+      to get GRC records including risk assessments, compliance tracking, audit findings, and control evaluations;
+      Ensure that the respective get_rsa_archer_records function in the RSAArcherConnectorTools is not hardcoding
+      any return values;
+
+  - description: |
+      RSA Archer Connector is able to retrieve incident management and security events
+    preconditions: |
+      A valid authenticated session with RSA Archer APIs
+    postconditions: |
+      Connector successfully retrieves incident data including security incidents, operational issues,
+      investigation details, and remediation tracking;
+
+  - description: |
+      RSA Archer Connector is able to retrieve risk management and assessment data
+    preconditions: |
+      A valid authenticated session with RSA Archer APIs
+    postconditions: |
+      Connector successfully retrieves risk data including risk registers, assessments, mitigation plans,
+      and risk scoring with contextual analysis and governance workflows
+
+tests:
+  - description: |
+      This checks to see that the connector is able to return a listing of tools
+    preconditions: |
+      A data connector implementation per the provided interfaces
+    postconditions: |
+      The data connector is able to provide a list of supported tools and interfaces
+    function_to_run: !python/file 1-test_tools_interface.py
+
+  - description: |
+      This checks that the connector can successfully verify its connection
+    preconditions: |
+      A connector implementation adhering to ConnectorInterface is available as 'connector'
+    postconditions: |
+      The check_connection method returns True if the connector is correctly configured
+    function_to_run: !python/file 2-test_connector_check_connection.py
+
+  - description: |
+      get_query_target_options enumerates RSA Archer data sources
+    preconditions: |
+      Valid RSA Archer API credentials
+    postconditions: |
+      Possible to retrieve the list of RSA Archer data sources using get_query_target_options
+      and to then use this to set the options in a given RSAArcherConnectorConfig which is 
+      subclassed from ConnectorConfig - adheres to example API response in query_target_options.py;
+      These must be real data sources, and not simulated;
+    function_to_run: !python/file 3-test_query_target_options.py
+
+  - description: |
+      Retrieve RSA Archer GRC records and compliance data
+    preconditions: |
+      Valid RSA Archer API credentials
+    postconditions: |
+      Possible to retrieve GRC records by way of connector tools;
+      This list includes compliance data, risk assessments, and control evaluations; 
+      These must be real GRC data, and not simulated;
+    function_to_run: !python/file 4-test_get_records.py
+
+  - description: |
+      Retrieve RSA Archer incident management data
+    preconditions: |
+      Valid RSA Archer API credentials
+    postconditions: |
+      Possible to retrieve incident management data including security incidents and investigations;
+      This list includes incident details, status tracking, and remediation information; 
+      These must be real incident data, and not simulated;
+    function_to_run: !python/file 5-test_get_incidents.py
+
+  - description: |
+      Retrieve RSA Archer risk management and assessment data
+    preconditions: |
+      Valid RSA Archer API credentials
+    postconditions: |
+      Possible to retrieve risk management data including assessments and mitigation plans;
+      This list includes risk scores, mitigation strategies, and governance workflows; 
+      These must be real risk data, and not simulated;
+    function_to_run: !python/file 6-test_get_risks.py
+
+connector_references: 
+  - description: "RSA Archer logo"
+    file_path: "assets/rsa_archer.webp"
+    environment_path: "connectors/rsa_archer/rsa_archer.webp"
+    format: "webp"
+    required: true
+    read_only: true
+
+user_references: []
+
+configs:
+  - name: "rsa_archer_api_url"
+    description: "The base URL for RSA Archer APIs, note this should be included as api_url in RSAArcherConnectorConfig"
+    value: !env/var
+
+  - name: "rsa_archer_username"
+    description: "Username for authenticating with RSA Archer APIs, note this should be included as username in RSAArcherConnectorConfig"
+    value: !env/var
+
+  - name: "rsa_archer_password"
+    description: "Password for authenticating with RSA Archer APIs, note this should be included as password in RSAArcherConnectorConfig"
+    value: !env/var
+
+  - name: "rsa_archer_instance_name"
+    description: "RSA Archer instance name, note this should be included as instance_name in RSAArcherConnectorConfig"
+    value: !env/var
+
+  - name: "rsa_archer_api_request_timeout"
+    description: "Request timeout in seconds"
+    value: 60
+
+  - name: "rsa_archer_api_max_retries"
+    description: "Number of times to retry API requests upon failure"
+    value: 3
+
+  - name: "rsa_archer_default_limit"
+    description: "Default limit for API response pagination"
+    value: 100
+
+  - name: "additional considerations"
+    description: |
+      Additional considerations for the generation of specifically the RSA Archer connector 
+      with regards to the connector framework as provided - please keep these strongly in mind
+    value: [
+      "RSAArcherConnectorConfig should derive from ConnectorConfig, this is not a connector of type AlertProviderConnectorConfig config",
+      "authentication should not be a tool, tools should handle authentication when used (so should not be explicitly exposed)",
+      "utilize the query target options to determine which data sources are valid for the target, and then use the target to select which sources to actually pull data from for the respective tools as shown in the unit tests",
+      "RSA Archer APIs require session-based authentication with username/password",
+      "implement proper session management and token handling for RSA Archer",
+      "handle different data types (applications, records, incidents, risks, controls) appropriately",
+      "support RSA Archer's application-based data model and field structures",
+      "handle RSA Archer's specific response formats and error codes per API specification",
+      "implement proper handling of RSA Archer's complex field types and relationships"
+    ]
+# !RSA Archer

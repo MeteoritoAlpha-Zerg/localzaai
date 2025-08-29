@@ -1,0 +1,149 @@
+# Signal
+name: "signal"
+category: "Messaging"
+description: "Create an API integration with Signal for sending and receiving messages"
+
+specs:
+  - description: |
+      The Signal Connector is able to authenticate with Signal per its implementation in the code 
+      environment only
+    preconditions: |
+      This spec has no strict preconditions
+    postconditions: |
+      The Signal connector is able to authenticate properly with a Signal instance;
+      The Signal connector config is of type ConnectorConfig and not AlertProviderConnectorConfig;
+
+  - description: |
+      Signal Connector is able to list Signal groups per user of get_query_target_options
+    preconditions: |
+      A valid authenticated session with Signal
+    postconditions: |
+      Connector successfully enumerates groups to populate the target options of the SignalTarget;
+
+  - description: |
+      Signal Connector is able to list group information
+    preconditions: |
+      A valid authenticated session with Signal
+    postconditions: |
+      Per the configuration as contained in SignalTarget as provided to SignalConnectorTools, it is possible
+      to get a list of groups along with their respective description and other relevant group details
+      as may be relevant;
+      Ensure that the respective get_signal_groups function in the SignalConnectorTools is not hardcoding
+      any return values;
+
+  - description: |
+      Signal Connector is able to list messages in a selected group
+    preconditions: |
+      A valid authenticated session with Signal
+    postconditions: |
+      Connector successfully lists messages for the selected group provided as a param
+      to the list messages tool
+
+  - description: |
+      Signal Connector is able to send messages to a selected group
+    preconditions: |
+      A valid authenticated session with Signal
+    postconditions: |
+      Connector successfully sends a message to the selected group provided as a param
+      to the send message tool
+
+tests:
+  - description: |
+      This checks to see that the connector is able to return a listing of tools
+    preconditions: |
+      A data connector implementation per the provided interfaces
+    postconditions: |
+      The data connector is able to provide a list of supported tools and interfaces
+    function_to_run: !python/file 1-test_tools_interface.py
+
+  - description: |
+      This checks that the connector can successfully verify its connection
+    preconditions: |
+      A connector implementation adhering to ConnectorInterface is available as 'connector'
+    postconditions: |
+      The check_connection method returns True if the connector is correctly configured
+    function_to_run: !python/file 2-test_connector_check_connection.py
+
+  - description: |
+      get_query_target_options enumerates Signal groups
+    preconditions: |
+      An existing Signal API configuration and credentials
+    postconditions: |
+      Possible to retrieve the list of Signal groups using get_query_target_options
+      and to then use this to set the options in a given SignalConnectorConfig which is 
+      subclassed from ConnectorConfig - adheres to example API response in query_target_options.py;
+      These must be real groups, and not simulated;
+    function_to_run: !python/file 3-test_query_target_options.py
+
+  - description: |
+      List Signal groups for selected Signal groups in target
+    preconditions: |
+      An existing Signal API configuration and credentials
+    postconditions: |
+      Possible to retrieve the list of Signal groups by way of connector tools;
+      This list includes details of the groups to be listed in results; 
+      These must be real groups, and not simulated;
+    function_to_run: !python/file 4-test_list_groups.py
+
+  - description: |
+      Retrieve messages for selected Signal group passed as param
+    preconditions: |
+      An existing Signal API configuration and credentials
+    postconditions: |
+      Possible to retrieve a set of messages for the selected Signal group as passed as a param to the connector tools;
+      This list only includes messages of the target group to be listed in results; 
+      These must be real messages, and not simulated;
+    function_to_run: !python/file 5-test_message_retrieval.py
+
+  - description: |
+      Send message to selected Signal group passed as param
+    preconditions: |
+      An existing Signal API configuration and credentials
+    postconditions: |
+      Possible to send a message to the selected Signal group as passed as a param to the connector tools;
+      The message is successfully delivered to the target group;
+      This must be a real message send, and not simulated;
+    function_to_run: !python/file 6-test_send_message.py
+
+connector_references: 
+  - description: "Signal logo"
+    file_path: "assets/signal.png"
+    environment_path: "connectors/signal/signal.png"
+    format: "png"
+    required: true
+    read_only: true
+
+user_references: []
+
+configs:
+  - name: "signal_api_url"
+    description: "The base URL of the Signal API instance, note this should be included as api_url in SignalConnectorConfig"
+    value: !env/var 
+
+  - name: "signal_phone_number"
+    description: "Phone number for authenticating with Signal, note this should be included as phone_number in SignalConnectorConfig"
+    value: !env/var 
+
+  - name: "signal_api_key"
+    description: "API Key for authenticating with Signal, note this should be included as api_key in SignalConnectorConfig"
+    value: !env/var 
+
+  - name: "signal_api_request_timeout"
+    description: "Request timeout in seconds"
+    value: 30
+
+  - name: "signal_api_max_retries"
+    description: "Number of times to retry API requests upon failure"
+    value: 3
+
+  - name: "additional considerations"
+    description: |
+      Additional considerations for the generation of specifically the Signal connector 
+      with regards to the connector framework as provided - please keep these strongly in mind
+    value: [
+      "SignalConnectorConfig should derive from ConnectorConfig, this is not a connector of type AlertProviderConnectorConfig config",
+      "authentication should not be a tool, tools should handle authentication when used (so should not be explicitly exposed)",
+      "utilize the query target options to determine which groups are valid for the target, and then use the target to select which groups to actually pull data from for the respective tools as shown in the unit tests",
+      "Signal API typically uses REST endpoints for message operations and group management"
+    ]
+# !Signal

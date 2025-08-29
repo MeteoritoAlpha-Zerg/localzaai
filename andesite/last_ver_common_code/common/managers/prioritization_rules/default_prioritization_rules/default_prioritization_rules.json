@@ -1,0 +1,24 @@
+[{
+  "rule_name": "Is Domain Controller",
+  "field_name": "Computer",
+  "field_regex": "-dc\\d+\\.",
+  "priority_boost": 0.6
+},
+{
+  "rule_name": "Is Workstation",
+  "field_name": "Computer",
+  "field_regex": "(?i)wks-",
+  "priority_boost": 0.3
+},
+{
+  "rule_name": "Is Exploitation",
+  "field_name": "killchain",
+  "field_regex": "Exploitation",
+  "priority_boost": 0.5
+},
+{
+  "rule_name": "Is Admin User",
+  "field_name": "user",
+  "field_regex": "admin",
+  "priority_boost": 0.3
+}]

@@ -1,0 +1,157 @@
+# RunZero
+name: "runzero"
+category: "Network Discovery"
+description: "Create an API integration with RunZero per its API specification"
+
+specs:
+  - description: |
+      The RunZero Connector is able to authenticate with RunZero APIs per its implementation in the code 
+      environment only
+    preconditions: |
+      Valid RunZero API token is required for authentication
+    postconditions: |
+      The RunZero connector is able to authenticate properly with RunZero APIs using API token authentication;
+      The RunZero connector config is of type ConnectorConfig and not AlertProviderConnectorConfig;
+
+  - description: |
+      RunZero Connector is able to list available data sources per user of get_query_target_options
+    preconditions: |
+      A valid authenticated session with RunZero APIs
+    postconditions: |
+      Connector successfully enumerates available data sources (assets, services, networks, scans) 
+      to populate the target options of the RunZeroTarget;
+
+  - description: |
+      RunZero Connector is able to retrieve asset inventory and network discovery data
+    preconditions: |
+      A valid authenticated session with RunZero APIs
+    postconditions: |
+      Per the configuration as contained in RunZeroTarget as provided to RunZeroConnectorTools, it is possible
+      to get asset inventory including IP addresses, hostnames, operating systems, device types, and discovered services;
+      Ensure that the respective get_runzero_assets function in the RunZeroConnectorTools is not hardcoding
+      any return values;
+
+  - description: |
+      RunZero Connector is able to retrieve network services and protocol information
+    preconditions: |
+      A valid authenticated session with RunZero APIs
+    postconditions: |
+      Connector successfully retrieves network services including port information, protocol details,
+      service banners, and application identification data;
+
+  - description: |
+      RunZero Connector is able to retrieve network scan results and discovery insights
+    preconditions: |
+      A valid authenticated session with RunZero APIs
+    postconditions: |
+      Connector successfully retrieves scan results including network topology, device discovery,
+      service enumeration, and network mapping data with contextual analysis
+
+tests:
+  - description: |
+      This checks to see that the connector is able to return a listing of tools
+    preconditions: |
+      A data connector implementation per the provided interfaces
+    postconditions: |
+      The data connector is able to provide a list of supported tools and interfaces
+    function_to_run: !python/file 1-test_tools_interface.py
+
+  - description: |
+      This checks that the connector can successfully verify its connection
+    preconditions: |
+      A connector implementation adhering to ConnectorInterface is available as 'connector'
+    postconditions: |
+      The check_connection method returns True if the connector is correctly configured
+    function_to_run: !python/file 2-test_connector_check_connection.py
+
+  - description: |
+      get_query_target_options enumerates RunZero data sources
+    preconditions: |
+      Valid RunZero API token
+    postconditions: |
+      Possible to retrieve the list of RunZero data sources using get_query_target_options
+      and to then use this to set the options in a given RunZeroConnectorConfig which is 
+      subclassed from ConnectorConfig - adheres to example API response in query_target_options.py;
+      These must be real data sources, and not simulated;
+    function_to_run: !python/file 3-test_query_target_options.py
+
+  - description: |
+      Retrieve RunZero asset inventory and network discovery data
+    preconditions: |
+      Valid RunZero API token
+    postconditions: |
+      Possible to retrieve asset inventory by way of connector tools;
+      This list includes asset details, IP addresses, and discovered services; 
+      These must be real asset data, and not simulated;
+    function_to_run: !python/file 4-test_get_assets.py
+
+  - description: |
+      Retrieve RunZero network services and protocol information
+    preconditions: |
+      Valid RunZero API token
+    postconditions: |
+      Possible to retrieve network services including port and protocol information;
+      This list includes service details, banners, and application identification; 
+      These must be real service data, and not simulated;
+    function_to_run: !python/file 5-test_get_services.py
+
+  - description: |
+      Retrieve RunZero network scan results and discovery insights
+    preconditions: |
+      Valid RunZero API token
+    postconditions: |
+      Possible to retrieve scan results and network discovery insights;
+      This list includes scan metadata, discovery results, and network topology; 
+      These must be real scan data, and not simulated;
+    function_to_run: !python/file 6-test_get_scans.py
+
+connector_references: 
+  - description: "RunZero logo"
+    file_path: "assets/runzero.png"
+    environment_path: "connectors/runzero/runzero.png"
+    format: "png"
+    required: true
+    read_only: true
+
+user_references: []
+
+configs:
+  - name: "runzero_api_url"
+    description: "The base URL for RunZero APIs, note this should be included as api_url in RunZeroConnectorConfig"
+    value: "https://console.runzero.com/api/v1.0"
+
+  - name: "runzero_api_token"
+    description: "API Token for authenticating with RunZero APIs, note this should be included as api_token in RunZeroConnectorConfig"
+    value: !env/var
+
+  - name: "runzero_organization_id"
+    description: "Organization ID for RunZero API access, note this should be included as organization_id in RunZeroConnectorConfig"
+    value: !env/var
+
+  - name: "runzero_api_request_timeout"
+    description: "Request timeout in seconds"
+    value: 60
+
+  - name: "runzero_api_max_retries"
+    description: "Number of times to retry API requests upon failure"
+    value: 3
+
+  - name: "runzero_default_limit"
+    description: "Default limit for API response pagination"
+    value: 100
+
+  - name: "additional considerations"
+    description: |
+      Additional considerations for the generation of specifically the RunZero connector 
+      with regards to the connector framework as provided - please keep these strongly in mind
+    value: [
+      "RunZeroConnectorConfig should derive from ConnectorConfig, this is not a connector of type AlertProviderConnectorConfig config",
+      "authentication should not be a tool, tools should handle authentication when used (so should not be explicitly exposed)",
+      "utilize the query target options to determine which data sources are valid for the target, and then use the target to select which sources to actually pull data from for the respective tools as shown in the unit tests",
+      "RunZero APIs require proper API token authentication in headers",
+      "implement proper rate limiting and pagination handling for large datasets",
+      "handle different data types (assets, services, networks, scans) appropriately",
+      "support RunZero's organization-based data access model",
+      "handle RunZero's specific response formats and data structures per API specification"
+    ]
+# !RunZero

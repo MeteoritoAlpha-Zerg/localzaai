@@ -1,0 +1,194 @@
+# Teams
+name: "teams"
+category: "Communication & Collaboration"
+description: "Create an API integration with Microsoft Teams per its API specification"
+
+specs:
+  - description: |
+      The Teams Connector is able to authenticate with Microsoft Teams per its implementation in the code 
+      environment only
+    preconditions: |
+      This spec has no strict preconditions
+    postconditions: |
+      The Teams connector is able to authenticate properly with a Microsoft Teams instance;
+      The Teams connector config is of type ConnectorConfig and not AlertProviderConnectorConfig;
+
+  - description: |
+      Teams Connector is able to list Microsoft Teams per user of get_query_target_options
+    preconditions: |
+      A valid authenticated session with Microsoft Teams
+    postconditions: |
+      Connector successfully enumerates teams to populate the target options of the TeamsTarget;
+
+  - description: |
+      Teams Connector is able to list team information
+    preconditions: |
+      A valid authenticated session with Microsoft Teams
+    postconditions: |
+      Per the configuration as contained in TeamsTarget as provided to TeamsConnectorTools, it is possible
+      to get a list of teams along with their respective description and other relevant team details
+      as may be relevant;
+      Ensure that the respective get_teams_info function in the TeamsConnectorTools is not hardcoding
+      any return values;
+
+  - description: |
+      Teams Connector is able to list channels in a selected team
+    preconditions: |
+      A valid authenticated session with Microsoft Teams
+    postconditions: |
+      Connector successfully lists channels for the selected team provided as a param
+      to the list channels tool
+
+  - description: |
+      Teams Connector is able to retrieve messages from selected channels
+    preconditions: |
+      A valid authenticated session with Microsoft Teams
+    postconditions: |
+      Connector successfully retrieves messages from the selected channels provided as a param
+      to the message retrieval tool
+
+  - description: |
+      Teams Connector is able to send messages to channels
+    preconditions: |
+      A valid authenticated session with Microsoft Teams
+    postconditions: |
+      Connector successfully sends messages to specified channels with content and formatting
+      through the Microsoft Teams API
+
+tests:
+  - description: |
+      This checks to see that the connector is able to return a listing of tools
+    preconditions: |
+      A data connector implementation per the provided interfaces
+    postconditions: |
+      The data connector is able to provide a list of supported tools and interfaces
+    function_to_run: !python/file 1-test_tools_interface.py
+
+  - description: |
+      This checks that the connector can successfully verify its connection
+    preconditions: |
+      A connector implementation adhering to ConnectorInterface is available as 'connector'
+    postconditions: |
+      The check_connection method returns True if the connector is correctly configured
+    function_to_run: !python/file 2-test_connector_check_connection.py
+
+  - description: |
+      get_query_target_options enumerates Microsoft Teams
+    preconditions: |
+      An existing Microsoft Teams OAuth credentials and API access
+    postconditions: |
+      Possible to retrieve the list of Microsoft Teams using get_query_target_options
+      and to then use this to set the options in a given TeamsConnectorConfig which is 
+      subclassed from ConnectorConfig - adheres to example API response in query_target_options.py;
+      These must be real teams, and not simulated;
+    function_to_run: !python/file 3-test_query_target_options.py
+
+  - description: |
+      List Microsoft Teams for selected teams in target
+    preconditions: |
+      An existing Microsoft Teams OAuth credentials and API access
+    postconditions: |
+      Possible to retrieve the list of Microsoft Teams by way of connector tools;
+      This list includes details of the teams to be listed in results; 
+      These must be real teams, and not simulated;
+    function_to_run: !python/file 4-test_list_teams.py
+
+  - description: |
+      Retrieve channels for selected Microsoft Team passed as param
+    preconditions: |
+      An existing Microsoft Teams OAuth credentials and API access
+    postconditions: |
+      Possible to retrieve a set of channels for the selected Microsoft Team as passed as a param to the connector tools;
+      This list only includes channels of the target team to be listed in results; 
+      These must be real channels, and not simulated;
+    function_to_run: !python/file 5-test_channel_retrieval.py
+
+  - description: |
+      Retrieve messages for selected Microsoft Teams channels passed as param
+    preconditions: |
+      An existing Microsoft Teams OAuth credentials and API access
+    postconditions: |
+      Possible to retrieve a set of messages for the selected Microsoft Teams channels as passed as a param to the connector tools;
+      This list only includes messages of the target channels to be listed in results; 
+      These must be real messages, and not simulated;
+    function_to_run: !python/file 6-test_message_operations.py
+
+connector_references: 
+  - description: "Microsoft Teams logo"
+    file_path: "assets/teams.png"
+    environment_path: "connectors/teams/teams.png"
+    format: "png"
+    required: true
+    read_only: true
+
+user_references: []
+
+configs:
+  - name: "teams_client_id"
+    description: "Azure AD Application Client ID for authenticating with Microsoft Teams API, note this should be included as client_id in TeamsConnectorConfig"
+    value: !env/var 
+
+  - name: "teams_client_secret"
+    description: "Azure AD Application Client Secret for authenticating with Microsoft Teams API, note this should be included as client_secret in TeamsConnectorConfig"
+    value: !env/var 
+
+  - name: "teams_tenant_id"
+    description: "Azure AD Tenant ID for Microsoft Teams API access, note this should be included as tenant_id in TeamsConnectorConfig"
+    value: !env/var 
+
+  - name: "teams_scope"
+    description: "OAuth scopes for Microsoft Teams API access (defaults to https://graph.microsoft.com/.default)"
+    value: "https://graph.microsoft.com/.default"
+
+  - name: "teams_api_base_url"
+    description: "Base URL for Microsoft Graph API (defaults to https://graph.microsoft.com/v1.0)"
+    value: "https://graph.microsoft.com/v1.0"
+
+  - name: "teams_api_version"
+    description: "Microsoft Graph API version to use (defaults to v1.0)"
+    value: "v1.0"
+
+  - name: "teams_api_request_timeout"
+    description: "Request timeout in seconds"
+    value: 30
+
+  - name: "teams_api_max_retries"
+    description: "Number of times to retry API requests upon failure"
+    value: 3
+
+  - name: "teams_rate_limit_delay"
+    description: "Delay in seconds between API requests to respect rate limiting"
+    value: 1
+
+  - name: "teams_message_limit"
+    description: "Maximum number of messages to retrieve per channel request"
+    value: 50
+
+  - name: "teams_include_replies"
+    description: "Include message replies in message retrieval"
+    value: true
+
+  - name: "teams_include_attachments"
+    description: "Include message attachments in message retrieval"
+    value: false
+
+  - name: "additional considerations"
+    description: |
+      Additional considerations for the generation of specifically the Teams connector 
+      with regards to the connector framework as provided - please keep these strongly in mind
+    value: [
+      "TeamsConnectorConfig should derive from ConnectorConfig, this is not a connector of type AlertProviderConnectorConfig config",
+      "authentication should not be a tool, tools should handle authentication when used (so should not be explicitly exposed)",
+      "utilize the query target options to determine which teams are valid for the target, and then use the target to select which teams to actually pull data from for the respective tools as shown in the unit tests",
+      "implement proper Azure AD OAuth 2.0 flow with client credentials or authorization code flow for Microsoft Teams API access",
+      "handle Microsoft Graph API rate limiting and throttling with appropriate retry logic and exponential backoff",
+      "respect Microsoft Graph API permissions and scopes - ensure proper scope configuration for Teams operations",
+      "implement proper handling of Teams channel types (standard, private, shared) and their different permission models",
+      "handle large message volumes efficiently with pagination using Microsoft Graph API's @odata.nextLink",
+      "ensure proper handling of Teams message threading and reply structures",
+      "implement security best practices for handling sensitive Teams content and organizational data",
+      "support Teams' rich message formatting including mentions, cards, and attachments",
+      "handle different Teams membership types and permission levels appropriately",
+      "implement proper error handling for common Microsoft Graph API errors (throttling, permissions, not found)"
+    ]
+# !Teams

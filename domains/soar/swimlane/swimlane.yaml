@@ -1,0 +1,173 @@
+# Swimlane SOAR
+name: "swimlane_soar"
+category: "Security Orchestration"
+description: "Create an API integration with Swimlane SOAR to automate security workflows, incident response, and threat intelligence processing"
+
+specs:
+  - description: |
+      The Swimlane SOAR Connector is able to authenticate with Swimlane API per its implementation in the code 
+      environment only
+    preconditions: |
+      This spec has no strict preconditions
+    postconditions: |
+      The Swimlane SOAR connector is able to authenticate properly with the Swimlane API;
+      The Swimlane SOAR connector config is of type ConnectorConfig and not AlertProviderConnectorConfig;
+
+  - description: |
+      Swimlane SOAR Connector is able to list available applications and workspaces per user of get_query_target_options
+    preconditions: |
+      A valid authenticated session with Swimlane API
+    postconditions: |
+      Connector successfully enumerates applications and workspaces to populate the target options of the SwimlaneSOARTarget;
+
+  - description: |
+      Swimlane SOAR Connector is able to list application and workspace information
+    preconditions: |
+      A valid authenticated session with Swimlane API
+    postconditions: |
+      Per the configuration as contained in SwimlaneSOARTarget as provided to SwimlaneSOARConnectorTools, it is possible
+      to get a list of applications and workspaces along with their respective metadata and automation capabilities
+      as may be relevant for security orchestration;
+      Ensure that the respective get_swimlane_applications function in the SwimlaneSOARConnectorTools is not hardcoding
+      any return values;
+
+  - description: |
+      Swimlane SOAR Connector is able to execute workflows and manage records from selected applications
+    preconditions: |
+      A valid authenticated session with Swimlane API
+    postconditions: |
+      Connector successfully executes security workflows, manages incident records, and processes automation tasks
+      from the selected applications provided as parameters to the execution tool
+
+  - description: |
+      Swimlane SOAR Connector is able to process threat intelligence and automated response actions
+    preconditions: |
+      A valid authenticated session with Swimlane API
+    postconditions: |
+      Connector successfully processes threat intelligence data, executes automated response actions,
+      and manages security orchestration workflows for comprehensive incident management
+
+tests:
+  - description: |
+      This checks to see that the connector is able to return a listing of tools
+    preconditions: |
+      A data connector implementation per the provided interfaces
+    postconditions: |
+      The data connector is able to provide a list of supported tools and interfaces
+    function_to_run: !python/file 1-test_tools_interface.py
+
+  - description: |
+      This checks that the connector can successfully verify its connection
+    preconditions: |
+      A connector implementation adhering to ConnectorInterface is available as 'connector'
+    postconditions: |
+      The check_connection method returns True if the connector is correctly configured
+    function_to_run: !python/file 2-test_connector_check_connection.py
+
+  - description: |
+      get_query_target_options enumerates Swimlane SOAR applications and workspaces
+    preconditions: |
+      An existing Swimlane SOAR API token and server access
+    postconditions: |
+      Possible to retrieve the list of Swimlane SOAR applications and workspaces using get_query_target_options
+      and to then use this to set the options in a given SwimlaneSOARConnectorConfig which is 
+      subclassed from ConnectorConfig - adheres to example API response in query_target_options.py;
+      These must be real applications and workspaces, and not simulated;
+    function_to_run: !python/file 3-test_query_target_options.py
+
+  - description: |
+      List Swimlane SOAR applications for selected targets
+    preconditions: |
+      An existing Swimlane SOAR API token and server access
+    postconditions: |
+      Possible to retrieve the list of Swimlane SOAR applications by way of connector tools;
+      This list includes metadata and automation capabilities for security orchestration; 
+      These must be real applications, and not simulated;
+    function_to_run: !python/file 4-test_list_applications.py
+
+  - description: |
+      Execute workflows and manage records from selected Swimlane SOAR applications
+    preconditions: |
+      An existing Swimlane SOAR API token and server access with execution permissions
+    postconditions: |
+      Possible to execute security workflows and manage incident records from selected applications;
+      This execution returns actual workflow results from the target applications; 
+      These must be real workflow executions, and not simulated;
+    function_to_run: !python/file 5-test_workflow_execution.py
+
+  - description: |
+      Process threat intelligence and automated response actions
+    preconditions: |
+      An existing Swimlane SOAR API token and server access with threat intelligence processing
+    postconditions: |
+      Possible to process threat intelligence data and execute automated response actions;
+      The processing should support comprehensive security orchestration use cases;
+      Results must demonstrate actual threat intelligence processing capabilities;
+    function_to_run: !python/file 6-test_threat_intelligence.py
+
+connector_references: 
+  - description: "Swimlane SOAR logo"
+    file_path: "assets/swimlane_soar.svg"
+    environment_path: "connectors/swimlane_soar/swimlane_soar.svg"
+    format: "svg"
+    required: true
+    read_only: true
+
+user_references: []
+
+configs:
+  - name: "swimlane_host"
+    description: "Swimlane server hostname or IP address, note this should be included as host in SwimlaneSOARConnectorConfig"
+    value: !env/var 
+
+  - name: "swimlane_api_token"
+    description: "API Token for authenticating with Swimlane SOAR, note this should be included as api_token in SwimlaneSOARConnectorConfig"
+    value: !env/var 
+
+  - name: "swimlane_user_id"
+    description: "User ID for Swimlane SOAR authentication, note this should be included as user_id in SwimlaneSOARConnectorConfig"
+    value: !env/var 
+
+  - name: "swimlane_verify_ssl"
+    description: "Whether to verify SSL certificates"
+    value: true
+
+  - name: "swimlane_api_request_timeout"
+    description: "Request timeout in seconds"
+    value: 120
+
+  - name: "swimlane_api_max_retries"
+    description: "Number of times to retry API requests upon failure"
+    value: 3
+
+  - name: "swimlane_max_records_per_request"
+    description: "Maximum number of records to retrieve per request"
+    value: 1000
+
+  - name: "swimlane_workflow_execution_timeout"
+    description: "Workflow execution timeout in seconds"
+    value: 600
+
+  - name: "swimlane_record_status_filter"
+    description: "Filter records by status (new, in_progress, closed, resolved)"
+    value: "all"
+
+  - name: "swimlane_application_filter"
+    description: "Filter applications by type (incident, case, vulnerability, threat_intel)"
+    value: "all"
+
+  - name: "additional considerations"
+    description: |
+      Additional considerations for the generation of specifically the Swimlane SOAR connector 
+      with regards to the connector framework as provided - please keep these strongly in mind
+    value: [
+      "SwimlaneSOARConnectorConfig should derive from ConnectorConfig, this is not a connector of type AlertProviderConnectorConfig config",
+      "authentication should not be a tool, tools should handle authentication when used (so should not be explicitly exposed)",
+      "utilize the query target options to determine which applications and workspaces are valid for the target, and then use the target to select which automation workflows to actually execute from for the respective tools as shown in the unit tests",
+      "focus on security workflow automation, incident record management, and threat intelligence processing",
+      "support filtering by record status, application type, and workspace for targeted orchestration",
+      "handle both individual record operations and bulk automation processing capabilities",
+      "include case management, record tracking, and automated response actions for comprehensive SOAR functionality",
+      "support Swimlane's application-based architecture with proper record field mapping"
+    ]
+# !Swimlane SOAR

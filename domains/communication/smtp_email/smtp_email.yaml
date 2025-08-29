@@ -1,0 +1,194 @@
+# SMTP Email
+name: "smtp_email"
+category: "Email"
+description: "Create an API integration with an SMTP server for sending and receiving emails"
+
+specs:
+  - description: |
+      The SMTP Email Connector is able to authenticate with SMTP and IMAP servers per its implementation in the code 
+      environment only
+    preconditions: |
+      This spec has no strict preconditions
+    postconditions: |
+      The SMTP Email connector is able to authenticate properly with SMTP and IMAP servers;
+      The SMTP Email connector config is of type ConnectorConfig and not AlertProviderConnectorConfig;
+
+  - description: |
+      SMTP Email Connector is able to list email folders per user of get_query_target_options
+    preconditions: |
+      A valid authenticated session with IMAP server
+    postconditions: |
+      Connector successfully enumerates folders to populate the target options of the SMTPEmailTarget;
+
+  - description: |
+      SMTP Email Connector is able to list folder information
+    preconditions: |
+      A valid authenticated session with IMAP server
+    postconditions: |
+      Per the configuration as contained in SMTPEmailTarget as provided to SMTPEmailConnectorTools, it is possible
+      to get a list of folders along with their respective message counts and other relevant folder details
+      as may be relevant;
+      Ensure that the respective get_email_folders function in the SMTPEmailConnectorTools is not hardcoding
+      any return values;
+
+  - description: |
+      SMTP Email Connector is able to list emails in a selected folder
+    preconditions: |
+      A valid authenticated session with IMAP server
+    postconditions: |
+      Connector successfully lists emails for the selected folder provided as a param
+      to the list emails tool
+
+  - description: |
+      SMTP Email Connector is able to send emails via SMTP
+    preconditions: |
+      A valid authenticated session with SMTP server
+    postconditions: |
+      Connector successfully sends an email with specified recipient, subject, and body
+      via the send email tool
+
+  - description: |
+      SMTP Email Connector is able to retrieve email content including attachments
+    preconditions: |
+      A valid authenticated session with IMAP server
+    postconditions: |
+      Connector successfully retrieves full email content including headers, body, and attachments
+      for a specified email
+
+tests:
+  - description: |
+      This checks to see that the connector is able to return a listing of tools
+    preconditions: |
+      A data connector implementation per the provided interfaces
+    postconditions: |
+      The data connector is able to provide a list of supported tools and interfaces
+    function_to_run: !python/file 1-test_tools_interface.py
+
+  - description: |
+      This checks that the connector can successfully verify its connection
+    preconditions: |
+      A connector implementation adhering to ConnectorInterface is available as 'connector'
+    postconditions: |
+      The check_connection method returns True if the connector is correctly configured
+    function_to_run: !python/file 2-test_connector_check_connection.py
+
+  - description: |
+      get_query_target_options enumerates email folders
+    preconditions: |
+      An existing SMTP/IMAP server configuration and credentials
+    postconditions: |
+      Possible to retrieve the list of email folders using get_query_target_options
+      and to then use this to set the options in a given SMTPEmailConnectorConfig which is 
+      subclassed from ConnectorConfig - adheres to example API response in query_target_options.py;
+      These must be real folders, and not simulated;
+    function_to_run: !python/file 3-test_query_target_options.py
+
+  - description: |
+      List email folders for selected email folders in target
+    preconditions: |
+      An existing SMTP/IMAP server configuration and credentials
+    postconditions: |
+      Possible to retrieve the list of email folders by way of connector tools;
+      This list includes details of the folders to be listed in results; 
+      These must be real folders, and not simulated;
+    function_to_run: !python/file 4-test_list_folders.py
+
+  - description: |
+      Retrieve emails for selected folder passed as param
+    preconditions: |
+      An existing SMTP/IMAP server configuration and credentials
+    postconditions: |
+      Possible to retrieve a set of emails for the selected folder as passed as a param to the connector tools;
+      This list only includes emails of the target folder to be listed in results; 
+      These must be real emails, and not simulated;
+    function_to_run: !python/file 5-test_email_retrieval.py
+
+  - description: |
+      Send email via SMTP server
+    preconditions: |
+      An existing SMTP server configuration and credentials
+    postconditions: |
+      Possible to send an email with recipient, subject, and body via the SMTP server;
+      The email is successfully delivered;
+      This must be a real email send, and not simulated;
+    function_to_run: !python/file 6-test_send_email.py
+
+  - description: |
+      Retrieve full email content including attachments
+    preconditions: |
+      An existing IMAP server configuration and credentials
+    postconditions: |
+      Possible to retrieve complete email content including headers, body, and attachments;
+      The content retrieval includes proper parsing of MIME structures;
+      This must be real email content, and not simulated;
+    function_to_run: !python/file 7-test_email_content.py
+
+connector_references: 
+  - description: "SMTP Email logo"
+    file_path: "assets/smtp.png"
+    environment_path: "connectors/smtp_email/smtp.png"
+    format: "png"
+    required: true
+    read_only: true
+
+user_references: []
+
+configs:
+  - name: "smtp_server"
+    description: "SMTP server hostname, note this should be included as smtp_server in SMTPEmailConnectorConfig"
+    value: !env/var 
+
+  - name: "smtp_port"
+    description: "SMTP server port (typically 587 for TLS or 465 for SSL), note this should be included as smtp_port in SMTPEmailConnectorConfig"
+    value: !env/var 
+
+  - name: "imap_server"
+    description: "IMAP server hostname for receiving emails, note this should be included as imap_server in SMTPEmailConnectorConfig"
+    value: !env/var 
+
+  - name: "imap_port"
+    description: "IMAP server port (typically 993 for SSL or 143 for non-SSL), note this should be included as imap_port in SMTPEmailConnectorConfig"
+    value: !env/var 
+
+  - name: "email_username"
+    description: "Email account username/address, note this should be included as username in SMTPEmailConnectorConfig"
+    value: !env/var 
+
+  - name: "email_password"
+    description: "Email account password or app password, note this should be included as password in SMTPEmailConnectorConfig"
+    value: !env/var 
+
+  - name: "use_tls"
+    description: "Whether to use TLS encryption for SMTP"
+    value: true
+
+  - name: "use_ssl_imap"
+    description: "Whether to use SSL encryption for IMAP"
+    value: true
+
+  - name: "email_request_timeout"
+    description: "Request timeout in seconds"
+    value: 30
+
+  - name: "email_max_retries"
+    description: "Number of times to retry operations upon failure"
+    value: 3
+
+  - name: "max_emails_per_folder"
+    description: "Maximum number of emails to retrieve per folder request"
+    value: 50
+
+  - name: "additional considerations"
+    description: |
+      Additional considerations for the generation of specifically the SMTP Email connector 
+      with regards to the connector framework as provided - please keep these strongly in mind
+    value: [
+      "SMTPEmailConnectorConfig should derive from ConnectorConfig, this is not a connector of type AlertProviderConnectorConfig config",
+      "authentication should not be a tool, tools should handle authentication when used (so should not be explicitly exposed)",
+      "utilize the query target options to determine which folders are valid for the target, and then use the target to select which folders to actually pull data from for the respective tools as shown in the unit tests",
+      "SMTP is used for sending emails, IMAP is used for receiving and managing emails",
+      "Handle both plain text and HTML email content appropriately",
+      "Support common email headers and MIME types",
+      "Implement proper error handling for network timeouts and authentication failures"
+    ]
+# !SMTP Email

@@ -1,0 +1,262 @@
+# ServiceNow
+name: "servicenow"
+category: "IT Service Management"
+description: "Create an API integration with ServiceNow per its API specification"
+
+specs:
+  - description: |
+      The ServiceNow Connector is able to authenticate with ServiceNow per its implementation in the code
+      environment only
+    preconditions: |
+      This spec has no strict preconditions
+    postconditions: |
+      The ServiceNow connector is able to authenticate properly with a ServiceNow instance;
+      The ServiceNow connector config is of type ConnectorConfig and not AlertProviderConnectorConfig;
+
+  - description: |
+      ServiceNow Connector is able to list ServiceNow tables per user of get_query_target_options
+    preconditions: |
+      A valid authenticated session with ServiceNow
+    postconditions: |
+      Connector successfully enumerates tables to populate the target options of the ServiceNowTarget;
+  
+  - description: |
+      ServiceNow Connector is able to list table information
+    preconditions: |
+      A valid authenticated session with ServiceNow
+    postconditions: |
+      Per the configuration as contained in ServiceNowTarget as provided to ServiceNowConnectorTools, it is possible
+      to get a list of tables along with their respective description and other relevant table details
+      as may be relevant;
+      Ensure that the respective get_servicenow_tables function in the ServiceNowConnectorTools is not hardcoding
+      any return values;
+  
+  - description: |
+      ServiceNow Connector is able to list records in a selected table
+    preconditions: |
+      A valid authenticated session with ServiceNow
+    postconditions: |
+      Connector successfully lists records for the selected table provided as a param
+      to the list records tool;
+  
+  - description: |
+      The ServiceNow connector is able to support multiple tables by way of setting the target
+      table name in the ServiceNowTarget
+    preconditions: |
+      A valid connector implementation
+    postconditions: |
+      Connector is able to set the target table to be used in ServiceNowTarget and capable of supporting multiple tables;
+    
+  - description: |
+      ServiceNow Connector can query ServiceNow records
+    preconditions: |
+      A valid authenticated session with ServiceNow
+    postconditions: |
+      Connector successfully executes queries and returns results per its execution in the environment;
+      Ensure that query functionality properly handles various query parameters and returns appropriate results.
+
+  # - description: |
+  #     ServiceNow Connector can retrieve security incidents per its implementation in the code environment only
+  #   preconditions: |
+  #     A valid authenticated session with ServiceNow
+  #   postconditions: |
+  #     Connector successfully retrieves security-related incidents per its execution in the environment
+
+  # - description: |
+  #     ServiceNow Connector can retrieve vulnerability data per its implementation in the code environment only
+  #   preconditions: |
+  #     A valid authenticated session with ServiceNow with access to vulnerability management tables
+  #   postconditions: |
+  #     Connector successfully retrieves vulnerability data per its execution in the environment
+
+  # - description: |
+  #     ServiceNow Connector can track security compliance items per its implementation in the code environment only
+  #   preconditions: |
+  #     A valid authenticated session with ServiceNow with access to GRC tables
+  #   postconditions: |
+  #     Connector successfully retrieves compliance controls and their current status
+
+  # - description: |
+  #     ServiceNow Connector can retrieve security-related CMDB items per its implementation in the code environment only
+  #   preconditions: |
+  #     A valid authenticated session with ServiceNow with access to CMDB tables
+  #   postconditions: |
+  #     Connector successfully retrieves security-relevant configuration items and their relationships
+
+tests:
+  - description: |
+      This checks to see that the connector is able to return a listing of tools
+    preconditions: |
+      A data connector implementation per the provided interfaces
+    postconditions: |
+      The data connector is able to provide a list of supported tools and interfaces
+    function_to_run: !python/file 1-test_tools_interface.py
+
+  - description: |
+      This checks that the connector can successfully verify its connection
+    preconditions: |
+      A connector implementation adhering to ConnectorInterface is available as 'connector'
+    postconditions: |
+      The check_connection method returns True if the connector is correctly configured
+    function_to_run: !python/file 2-test_connector_check_connection.py
+
+  - description: |
+      get_query_target_options enumerates ServiceNow tables
+    preconditions: |
+      An existing ServiceNow API token and credentials
+    postconditions: |
+      Possible to retrieve the list of ServiceNow tables using get_query_target_options
+      and to then use this to set the options in a given ServiceNowConnectorConfig which is 
+      subclassed from ConnectorConfig - adheres to example API response in query_target_options.py;
+      These must be real tables, and not simulated;
+    function_to_run: !python/file 3-test_query_target_options.py
+
+  - description: |
+      List ServiceNow tables for selected instance in target
+    preconditions: |
+      An existing ServiceNow API token and credentials
+    postconditions: |
+      Possible to retrieve the list of ServiceNow tables by way of connector tools;
+      This list includes details of the tables to be listed in results; 
+      These must be real tables, and not simulated;
+    function_to_run: !python/file 4-test_list_tables.py
+
+  - description: |
+      Retrieve records for selected ServiceNow table passed as param
+    preconditions: |
+      An existing ServiceNow API token and credentials
+    postconditions: |
+      Possible to retrieve a set of records for the selected ServiceNow table as passed as a param to the connector tools;
+      This list only includes records of the target table to be listed in results; 
+      These must be real records, and not simulated;
+    function_to_run: !python/file 5-test_record_retrieval.py
+
+  - description: |
+      Retrieve detailed content from ServiceNow record
+    preconditions: |
+      An existing ServiceNow API token and credentials
+    postconditions: |
+      Possible to retrieve detailed content from a specific ServiceNow record by ID;
+      The content must be directly accessed using the record_id parameter;
+      This must be real content from the actual record, and not simulated;
+      Content should be verified to be non-empty and properly structured;
+    function_to_run: !python/file 6-test_record_content_retrieval.py
+
+  # - description: "Retrieve security incidents"
+  #   preconditions: "An existing ServiceNow API token and credentials"
+  #   postconditions: |
+  #     Possible to retrieve security-related incidents from ServiceNow;
+  #     These must be real security incidents, and not simulated;
+  #   function_to_run: !python/file test_security_incident_retrieval.py
+
+  # - description: "Retrieve vulnerability data"
+  #   preconditions: "An existing ServiceNow API token and credentials with access to vulnerability tables"
+  #   postconditions: |
+  #     Possible to retrieve vulnerability data from ServiceNow;
+  #     Results should include vulnerability details and affected systems;
+  #   function_to_run: !python/file test_vulnerability_retrieval.py
+
+  # - description: "Retrieve security-related CMDB items"
+  #   preconditions: "An existing ServiceNow API token and credentials with access to CMDB"
+  #   postconditions: |
+  #     Possible to retrieve security-relevant CMDB items from ServiceNow;
+  #     Results should include configuration items categorized by security relevance;
+  #   function_to_run: !python/file test_security_cmdb_retrieval.py
+
+connector_references: []
+
+user_references: []
+
+configs:
+  - name: "servicenow_instance_url"
+    description: "The URL of your ServiceNow instance, note this should be included as instance_url in ServiceNowConnectorConfig"
+    value: !env/var 
+
+  - name: "servicenow_client_id"
+    description: "Client ID for OAuth authentication with ServiceNow, note this should be included as client_id in ServiceNowConnectorConfig"
+    value: !env/var 
+
+  - name: "servicenow_client_secret"
+    description: "Client secret for OAuth authentication with ServiceNow, note this should be included as client_secret in ServiceNowConnectorConfig"
+    value: !env/var 
+
+  - name: "servicenow_username"
+    description: "Username for dev instance authentication with ServiceNow, note this should be included as username in ServiceNowConnectorConfig"
+    value: !env/var 
+
+  - name: "servicenow_password"
+    description: "Password for dev instance authentication with ServiceNow, note this should be included as password in ServiceNowConnectorConfig"
+    value: !env/var 
+
+  - name: "servicenow_api_version"
+    description: "ServiceNow API version to use"
+    value: "v1"
+
+  - name: "servicenow_oauth_token_url"
+    description: "OAuth token endpoint URL (typically {instance_url}/oauth_token.do)"
+    value: ""
+
+  - name: "servicenow_api_request_timeout"
+    description: "Request timeout in seconds"
+    value: 30
+
+  - name: "servicenow_api_max_retries"
+    description: "Number of times to retry API requests upon failure"
+    value: 3
+
+  - name: "security_incident_lookback_days"
+    description: "Number of days to look back for security incidents"
+    value: 30
+
+  - name: "security_asset_types"
+    description: "List of CMDB CI types that are security-relevant"
+    value: [
+      "cmdb_ci_firewall", 
+      "cmdb_ci_security_appliance", 
+      "cmdb_ci_ips", 
+      "cmdb_ci_ids", 
+      "cmdb_ci_endpoint_security", 
+      "cmdb_ci_web_application_firewall",
+      "cmdb_ci_netgear_firewall",
+      "cmdb_ci_paloalto_firewall",
+      "cmdb_ci_checkpoint_firewall", 
+      "cmdb_ci_fortinet_firewall"
+    ]
+
+  - name: "security_critical_tables"
+    description: "List of ServiceNow tables that contain security-critical information"
+    value: [
+      "incident", 
+      "sn_si_incident", 
+      "sn_vul_vulnerability", 
+      "sn_vul_vulnerable_item", 
+      "sn_vm_vulnerable_item",
+      "sn_val_vulnerability_response",
+      "cmdb_ci_security_appliance", 
+      "scan_result", 
+      "pa_scenarios", 
+      "sys_user", 
+      "sys_user_has_role", 
+      "sys_user_grmember"
+    ]
+
+  - name: "additional considerations"
+    description: |
+      Additional considerations for the generation of specifically the ServiceNow connector 
+      with regards to the connector framework as provided - please keep these strongly in mind
+    value: [
+      "use OAuth authentication with client ID and client secret as the primary authentication method",
+      "authentication should not be a tool, tools should handle authentication when used (so should not be explicitly exposed)",
+      "utilize the query target options which should provide the enumeration of ServiceNow tables",
+      "support for table API queries is essential for flexible data retrieval",
+      "handle ServiceNow-specific error cases and ensure proper error messages are returned",
+      "consider ServiceNow's rate limiting and pagination for large datasets",
+      "fallback to basic authentication with username/password if OAuth credentials are not provided",
+      "due to targeting a servicenow developer instance, authentication flow needs to use the useraccount scope",
+      "implement graceful fallbacks when security tables aren't available in the instance",
+      "carefully handle access control validation to ensure the connector only accesses permitted tables",
+      "implement specialized security-focused query tools to retrieve security incidents and vulnerabilities",
+      "ensure proper error handling when security-specific apps aren't installed in the ServiceNow instance",
+      "support for both ServiceNow standard tables and security-specific app tables"
+    ]
+# !ServiceNow

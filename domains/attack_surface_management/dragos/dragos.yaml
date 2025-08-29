@@ -1,0 +1,184 @@
+# Dragos
+name: "dragos"
+category: "OT Threat Intelligence"
+description: "Create an API integration with Dragos to ingest, analyze, and process OT threat intelligence, asset monitoring data, and security incident insights"
+
+specs:
+  - description: |
+      The Dragos Connector is able to authenticate with Dragos per its implementation in the code 
+      environment only
+    preconditions: |
+      This spec has no strict preconditions
+    postconditions: |
+      The Dragos connector is able to authenticate properly with a Dragos instance;
+      The Dragos connector config is of type ConnectorConfig and not AlertProviderConnectorConfig;
+
+  - description: |
+      Dragos Connector is able to list OT threat intelligence feeds per user of get_query_target_options
+    preconditions: |
+      A valid authenticated session with Dragos
+    postconditions: |
+      Connector successfully enumerates OT threat intelligence feeds to populate the target options of the DragosTarget;
+
+  - description: |
+      Dragos Connector is able to retrieve OT threat intelligence data
+    preconditions: |
+      A valid authenticated session with Dragos
+    postconditions: |
+      Per the configuration as contained in DragosTarget as provided to DragosConnectorTools, it is possible
+      to get OT threat intelligence data including activity groups, TTPs, and IOCs along with their respective 
+      analysis and context as may be relevant;
+      Ensure that the respective get_dragos_threat_intelligence function in the DragosConnectorTools is not hardcoding
+      any return values;
+
+  - description: |
+      Dragos Connector is able to retrieve asset monitoring and vulnerability data
+    preconditions: |
+      A valid authenticated session with Dragos
+    postconditions: |
+      Connector successfully retrieves asset monitoring data, vulnerabilities, and security assessments
+      for OT/ICS environments provided as a param to the asset monitoring tools
+
+  - description: |
+      Dragos Connector is able to retrieve security incident and event data
+    preconditions: |
+      A valid authenticated session with Dragos
+    postconditions: |
+      Connector successfully retrieves security incidents, events, and alerts for OT environments
+      provided as parameters to the incident retrieval tools
+
+tests:
+  - description: |
+      This checks to see that the connector is able to return a listing of tools
+    preconditions: |
+      A data connector implementation per the provided interfaces
+    postconditions: |
+      The data connector is able to provide a list of supported tools and interfaces
+    function_to_run: !python/file 1-test_tools_interface.py
+
+  - description: |
+      This checks that the connector can successfully verify its connection
+    preconditions: |
+      A connector implementation adhering to ConnectorInterface is available as 'connector'
+    postconditions: |
+      The check_connection method returns True if the connector is correctly configured
+    function_to_run: !python/file 2-test_connector_check_connection.py
+
+  - description: |
+      get_query_target_options enumerates Dragos OT threat intelligence feeds
+    preconditions: |
+      An existing Dragos API credentials and platform access
+    postconditions: |
+      Possible to retrieve the list of Dragos OT threat intelligence feeds using get_query_target_options
+      and to then use this to set the options in a given DragosConnectorConfig which is 
+      subclassed from ConnectorConfig - adheres to example API response in query_target_options.py;
+      These must be real threat intelligence feeds, and not simulated;
+    function_to_run: !python/file 3-test_query_target_options.py
+
+  - description: |
+      Retrieve OT threat intelligence data for selected feeds
+    preconditions: |
+      An existing Dragos API credentials and platform access
+    postconditions: |
+      Possible to retrieve OT threat intelligence data by way of connector tools;
+      This data includes activity groups, TTPs, IOCs, and contextual analysis to be listed in results; 
+      These must be real threat intelligence data, and not simulated;
+    function_to_run: !python/file 4-test_threat_intelligence.py
+
+  - description: |
+      Retrieve asset monitoring data for OT environments
+    preconditions: |
+      An existing Dragos API credentials and platform access
+    postconditions: |
+      Possible to retrieve asset monitoring and vulnerability data for OT/ICS environments passed as a param to the connector tools;
+      This data includes asset inventories, vulnerabilities, and security assessments; 
+      These must be real asset monitoring data, and not simulated;
+    function_to_run: !python/file 5-test_asset_monitoring.py
+
+  - description: |
+      Retrieve security incident data for OT environments
+    preconditions: |
+      An existing Dragos API credentials and platform access
+    postconditions: |
+      Possible to retrieve security incidents, events, and alerts for OT environments passed as a param to the connector tools;
+      This data includes incident details, impact analysis, and response recommendations; 
+      These must be real security incident data, and not simulated;
+    function_to_run: !python/file 6-test_security_incidents.py
+
+connector_references: 
+  - description: "Dragos logo"
+    file_path: "assets/dragos.png"
+    environment_path: "connectors/dragos/dragos.png"
+    format: "png"
+    required: true
+    read_only: true
+
+user_references: []
+
+configs:
+  - name: "dragos_api_url"
+    description: "The base URL of the Dragos platform API, note this should be included as api_url in DragosConnectorConfig"
+    value: !env/var 
+
+  - name: "dragos_api_key"
+    description: "API Key for authenticating with Dragos, note this should be included as api_key in DragosConnectorConfig"
+    value: !env/var 
+
+  - name: "dragos_api_secret"
+    description: "API Secret for authenticating with Dragos, note this should be included as api_secret in DragosConnectorConfig"
+    value: !env/var 
+
+  - name: "dragos_client_id"
+    description: "Client ID for OAuth authentication with Dragos, note this should be included as client_id in DragosConnectorConfig"
+    value: !env/var 
+
+  - name: "dragos_api_version"
+    description: "Dragos API version to use (defaults to v1)"
+    value: "v1"
+
+  - name: "dragos_api_request_timeout"
+    description: "Request timeout in seconds"
+    value: 60
+
+  - name: "dragos_api_max_retries"
+    description: "Number of times to retry API requests upon failure"
+    value: 3
+
+  - name: "dragos_threat_feed_refresh_interval"
+    description: "Threat intelligence feed refresh interval in minutes"
+    value: 60
+
+  - name: "dragos_asset_scan_interval"
+    description: "Asset monitoring scan interval in hours"
+    value: 24
+
+  - name: "dragos_incident_severity_filter"
+    description: "Minimum incident severity level to retrieve (Low, Medium, High, Critical)"
+    value: "Medium"
+
+  - name: "dragos_default_page_size"
+    description: "Default number of results to return per page"
+    value: 100
+
+  - name: "dragos_max_pages"
+    description: "Maximum number of pages to retrieve for paginated results"
+    value: 10
+
+  - name: "additional considerations"
+    description: |
+      Additional considerations for the generation of specifically the Dragos connector 
+      with regards to the connector framework as provided - please keep these strongly in mind
+    value: [
+      "DragosConnectorConfig should derive from ConnectorConfig, this is not a connector of type AlertProviderConnectorConfig config",
+      "authentication should not be a tool, tools should handle authentication when used (so should not be explicitly exposed)",
+      "utilize the query target options to determine which OT threat intelligence feeds are valid for the target, and then use the target to select which feeds to actually pull data from for the respective tools as shown in the unit tests",
+      "implement proper handling of OT-specific threat intelligence including activity groups, TTPs, and industrial control system IOCs",
+      "ensure proper categorization of OT assets, vulnerabilities, and security incidents specific to industrial environments",
+      "handle rate limiting gracefully as Dragos API has usage quotas and enterprise-grade access controls",
+      "provide meaningful error messages when API quota is exceeded, authentication fails, or OT data access is restricted",
+      "implement proper data classification and handling for sensitive OT threat intelligence and security data",
+      "support filtering by severity levels, asset types, and threat categories for efficient OT security analysis",
+      "maintain data integrity when processing large volumes of OT threat intelligence and security monitoring data",
+      "ensure proper handling of time-sensitive threat intelligence and real-time security incident data"
+    ]
+# !Dragos

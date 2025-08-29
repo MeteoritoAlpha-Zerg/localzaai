@@ -1,0 +1,8 @@
+# DCAIG Attack Surface Management / IOT (internet of things) / ICS (industrial control systems) Connectors
+
+- !include xspanse/xspanse.yaml
+- !include censys/censys.yaml
+- !include ipinfo/ipinfo.yaml
+- !include digital_envoy/digital_envoy.yaml
+- !include dragos/dragos.yaml
+- !include claroty/claroty.yaml

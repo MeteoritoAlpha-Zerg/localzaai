@@ -1,0 +1,248 @@
+# SysAid
+name: "sysaid"
+category: "IT Service Management"
+description: "Create an API integration with SysAid per its API specification"
+
+specs:
+  - description: |
+      The SysAid Connector is able to authenticate with SysAid per its implementation in the code 
+      environment only
+    preconditions: |
+      This spec has no strict preconditions
+    postconditions: |
+      The SysAid connector is able to authenticate properly with a SysAid instance;
+      The SysAid connector config is of type ConnectorConfig and not AlertProviderConnectorConfig;
+
+  - description: |
+      SysAid Connector is able to list SysAid service requests per user of get_query_target_options
+    preconditions: |
+      A valid authenticated session with SysAid
+    postconditions: |
+      Connector successfully enumerates service requests to populate the target options of the SysAidTarget;
+
+  - description: |
+      SysAid Connector is able to list service request information
+    preconditions: |
+      A valid authenticated session with SysAid
+    postconditions: |
+      Per the configuration as contained in SysAidTarget as provided to SysAidConnectorTools, it is possible
+      to get a list of service requests along with their respective description and other relevant service request details
+      as may be relevant;
+      Ensure that the respective get_sysaid_service_requests function in the SysAidConnectorTools is not hardcoding
+      any return values;
+
+  - description: |
+      SysAid Connector is able to retrieve details of a specific service request
+    preconditions: |
+      A valid authenticated session with SysAid
+    postconditions: |
+      Connector successfully retrieves detailed information for the selected service request provided as a param
+      to the get service request details tool
+
+  - description: |
+      SysAid Connector is able to create a new service request
+    preconditions: |
+      A valid authenticated session with SysAid
+    postconditions: |
+      Connector successfully creates a service request and returns the new service request ID
+      to the create service request tool
+
+  - description: |
+      SysAid Connector is able to update an existing service request
+    preconditions: |
+      A valid authenticated session with SysAid and an existing service request ID
+    postconditions: |
+      Connector successfully updates the specified service request provided as a param
+      to the update service request tool
+
+  - description: |
+      SysAid Connector is able to add notes to an existing service request
+    preconditions: |
+      A valid authenticated session with SysAid and an existing service request ID
+    postconditions: |
+      Connector successfully adds notes to the specified service request provided as a param
+      to the add service request notes tool
+
+  - description: |
+      SysAid Connector is able to retrieve knowledge base articles
+    preconditions: |
+      A valid authenticated session with SysAid
+    postconditions: |
+      Connector successfully retrieves knowledge base articles provided as a param
+      to the get knowledge base articles tool
+
+  - description: |
+      SysAid Connector is able to query asset information
+    preconditions: |
+      A valid authenticated session with SysAid
+    postconditions: |
+      Connector successfully retrieves asset information provided as a param
+      to the get asset information tool
+
+tests:
+  - description: |
+      This checks to see that the connector is able to return a listing of tools
+    preconditions: |
+      A data connector implementation per the provided interfaces
+    postconditions: |
+      The data connector is able to provide a list of supported tools and interfaces
+    function_to_run: !python/file 1-test_tools_interface.py
+
+  - description: |
+      This checks that the connector can successfully verify its connection
+    preconditions: |
+      A connector implementation adhering to ConnectorInterface is available as 'connector'
+    postconditions: |
+      The check_connection method returns True if the connector is correctly configured
+    function_to_run: !python/file 2-test_connector_check_connection.py
+
+  - description: |
+      get_query_target_options enumerates SysAid service requests
+    preconditions: |
+      An existing SysAid API credentials and valid instance
+    postconditions: |
+      Possible to retrieve the list of SysAid service requests using get_query_target_options
+      and to then use this to set the options in a given SysAidConnectorConfig which is 
+      subclassed from ConnectorConfig - adheres to example API response in query_target_options.py;
+      These must be real service requests, and not simulated;
+    function_to_run: !python/file 3-test_query_target_options.py
+
+  - description: |
+      List SysAid service requests for selected service requests in target
+    preconditions: |
+      An existing SysAid API credentials and valid instance
+    postconditions: |
+      Possible to retrieve the list of SysAid service requests by way of connector tools;
+      This list includes details of the service requests to be listed in results; 
+      These must be real service requests, and not simulated;
+    function_to_run: !python/file 4-test_list_service_requests.py
+
+  - description: |
+      Retrieve details for selected SysAid service request passed as param
+    preconditions: |
+      An existing SysAid API credentials and valid instance
+    postconditions: |
+      Possible to retrieve detailed information for the selected SysAid service request as passed as a param to the connector tools;
+      This detail only includes information of the target service request to be listed in results; 
+      These must be real service request details, and not simulated;
+    function_to_run: !python/file 5-test_service_request_details.py
+
+  - description: |
+      Retrieve knowledge base articles from SysAid passed as param
+    preconditions: |
+      An existing SysAid API credentials and valid instance
+    postconditions: |
+      Possible to retrieve knowledge base articles from SysAid as passed as a param to the connector tools;
+      This list includes details of the articles to be listed in results; 
+      These must be real knowledge base articles, and not simulated;
+    function_to_run: !python/file 6-test_knowledge_base_query.py
+
+  - description: |
+      Retrieve asset information from SysAid passed as param
+    preconditions: |
+      An existing SysAid API credentials and valid instance with asset management access
+    postconditions: |
+      Possible to retrieve asset information from SysAid as passed as a param to the connector tools;
+      This list includes details of the assets to be listed in results; 
+      These must be real asset information, and not simulated;
+    function_to_run: !python/file 7-test_asset_query.py
+
+connector_references: 
+  - description: "SysAid PNG logo"
+    file_path: "assets/sysaid.png"
+    environment_path: "connectors/sysaid/sysaid.png"
+    format: "png"
+    required: true
+    read_only: true
+
+user_references: []
+
+configs:
+  - name: "sysaid_url"
+    description: "The URL of your SysAid instance (e.g., https://company.sysaidit.com), note this should be included as url in SysAidConnectorConfig"
+    value: !env/var 
+
+  - name: "sysaid_account_id"
+    description: "Your SysAid account ID, note this should be included as account_id in SysAidConnectorConfig"
+    value: !env/var 
+
+  - name: "sysaid_username"
+    description: "Username for authenticating with SysAid, note this should be included as username in SysAidConnectorConfig"
+    value: !env/var 
+
+  - name: "sysaid_password"
+    description: "Password for authenticating with SysAid, note this should be included as password in SysAidConnectorConfig"
+    value: !env/var 
+
+  - name: "sysaid_api_key"
+    description: "API Key for authenticating with SysAid (optional, alternative to username/password), note this should be included as api_key in SysAidConnectorConfig"
+    value: !env/var 
+
+  - name: "sysaid_api_request_timeout"
+    description: "Request timeout in seconds"
+    value: 30
+
+  - name: "sysaid_api_max_retries"
+    description: "Number of times to retry API requests upon failure"
+    value: 3
+
+  - name: "security_incident_lookback_days"
+    description: "Number of days to look back for security incidents"
+    value: 30
+
+  - name: "security_incident_categories"
+    description: "Categories of service requests that should be treated as security incidents"
+    value: [
+      "Security", 
+      "Security Incident", 
+      "Data Breach", 
+      "Vulnerability", 
+      "Compliance", 
+      "Audit"
+    ]
+
+  - name: "security_keywords"
+    description: "Keywords that indicate a service request may be security-related"
+    value: [
+      "security", 
+      "breach", 
+      "hack", 
+      "phishing", 
+      "malware", 
+      "virus", 
+      "ransomware", 
+      "unauthorized", 
+      "suspicious", 
+      "incident",
+      "vulnerability",
+      "exploit",
+      "compliance",
+      "audit",
+      "access",
+      "password"
+    ]
+
+  - name: "scan_assets_for_vulnerabilities"
+    description: "Whether to scan assets for potential security vulnerabilities"
+    value: true
+
+  - name: "additional considerations"
+    description: |
+      Additional considerations for the generation of specifically the SysAid connector 
+      with regards to the connector framework as provided - please keep these strongly in mind
+    value: [
+      "SysAidConnectorConfig should derive from ConnectorConfig, this is not a connector of type AlertProviderConnectorConfig config",
+      "authentication should not be a tool, tools should handle authentication when used (so should not be explicitly exposed)",
+      "utilize the query target options to determine which service requests are valid for the target, and then use the target to select which service requests to actually pull data from for the respective tools as shown in the unit tests",
+      "handle SysAid's specific API requirements including content-type and accept headers",
+      "support both on-premises and cloud SysAid instances",
+      "handle pagination correctly for large volumes of service requests",
+      "consider custom fields and categories in service requests",
+      "be aware of SysAid's API session management and token expiration",
+      "implement security-focused queries for incident management",
+      "provide fallback mechanisms when security-specific APIs aren't available",
+      "handle version differences between SysAid instances",
+      "consider SysAid's asset management capabilities for security monitoring",
+      "properly handle SysAid's different authentication methods (username/password vs API key)"
+    ]
+# !SysAid

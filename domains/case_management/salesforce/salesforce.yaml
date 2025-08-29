@@ -1,0 +1,197 @@
+# Salesforce
+name: "salesforce"
+category: "CRM, Security Analytics, and User Activity Monitoring"
+description: "Create an API integration with Salesforce to query, analyze, and monitor CRM data with security-focused capabilities."
+
+specs:
+  - description: |
+      The Salesforce Connector is able to authenticate with Salesforce per its implementation in the code 
+      environment only
+    preconditions: |
+      This spec has no strict preconditions
+    postconditions: |
+      The Salesforce connector is able to authenticate properly with a Salesforce instance;
+      The Salesforce connector config is of type ConnectorConfig and not AlertProviderConnectorConfig;
+
+  - description: |
+      Salesforce Connector is able to list objects per use of get_query_target_options
+    preconditions: |
+      A valid authenticated session with Salesforce
+    postconditions: |
+      Connector successfully enumerates Salesforce objects to populate the target options of the SalesforceTarget;
+
+  - description: |
+      Salesforce Connector is able to list object information
+    preconditions: |
+      A valid authenticated session with Salesforce
+    postconditions: |
+      Per the configuration as contained in SalesforceTarget as provided to SalesforceConnectorTools, it is possible
+      to get a list of Salesforce objects along with their respective description and other relevant object details
+      as may be relevant;
+      Ensure that the respective get_salesforce_objects function in the SalesforceConnectorTools is not hardcoding
+      any return values;
+
+  - description: |
+      Salesforce Connector is able to list records for a selected object
+    preconditions: |
+      A valid authenticated session with Salesforce
+    postconditions: |
+      Connector successfully lists records for the selected object provided as a param
+      to the list records tool
+
+  # - description: |
+  #     Salesforce Connector can execute SOQL queries for security analysis
+  #   preconditions: |
+  #     A valid authenticated session with Salesforce
+  #   postconditions: |
+  #     Connector successfully executes SOQL queries and returns results with security-relevant data
+
+  # - description: |
+  #     Salesforce Connector can retrieve user login history data for security monitoring
+  #   preconditions: |
+  #     A valid authenticated session with Salesforce with appropriate permissions
+  #   postconditions: |
+  #     Connector successfully retrieves login history for security analysis and anomaly detection
+
+  - description: |
+      Salesforce Connector handles API rate limiting and retries queries when necessary
+    preconditions: |
+      A valid Salesforce API connection
+    postconditions: |
+      Connector gracefully manages rate-limiting responses and governor limits
+
+tests:
+  - description: |
+      This checks to see that the connector is able to return a listing of tools
+    preconditions: |
+      A data connector implementation per the provided interfaces
+    postconditions: |
+      The data connector is able to provide a list of supported tools and interfaces
+    function_to_run: !python/file 1-test_tools_interface.py
+
+  - description: |
+      This checks that the connector can successfully verify its connection
+    preconditions: |
+      A connector implementation adhering to ConnectorInterface is available as 'connector'
+    postconditions: |
+      The check_connection method returns True if the connector is correctly configured
+    function_to_run: !python/file 2-test_connector_check_connection.py
+
+  - description: |
+      get_query_target_options enumerates Salesforce objects
+    preconditions: |
+      An existing Salesforce username, password, and security token
+    postconditions: |
+      Possible to retrieve the list of Salesforce objects using get_query_target_options
+      and to then use this to set the options in a given SalesforceConnectorConfig which is 
+      subclassed from ConnectorConfig - adheres to example API response in query_target_options.py;
+      These must be real objects, and not simulated;
+    function_to_run: !python/file 3-test_query_target_options.py
+
+  - description: |
+      List Salesforce objects for selected objects in target
+    preconditions: |
+      An existing Salesforce username, password, and security token
+    postconditions: |
+      Possible to retrieve the list of Salesforce objects by way of connector tools;
+      This list includes details of the objects to be listed in results; 
+      These must be real objects, and not simulated;
+    function_to_run: !python/file 4-test_list_objects.py
+
+  - description: |
+      Retrieve records for selected Salesforce object passed as param
+    preconditions: |
+      An existing Salesforce username, password, and security token
+    postconditions: |
+      Possible to retrieve a set of records for the selected Salesforce object as passed as a param to the connector tools;
+      This list only includes records of the target object to be listed in results; 
+      These must be real records, and not simulated;
+    function_to_run: !python/file 5-test_record_retrieval.py
+
+  # - description: |
+  #     Execute SOQL query for security analysis
+  #   preconditions: |
+  #     An existing Salesforce username, password, and security token
+  #   postconditions: |
+  #     Possible to execute SOQL queries focused on security-relevant data;
+  #     Results should contain data useful for security analysis;
+  #   function_to_run: !python/file 6-test_security_soql_query.py
+
+  # - description: |
+  #     Retrieve user login history for security monitoring
+  #   preconditions: |
+  #     An existing Salesforce username, password, and security token with appropriate permissions
+  #   postconditions: |
+  #     Possible to retrieve login history data for security analysis;
+  #     Connector successfully identifies login patterns and potential anomalies;
+  #   function_to_run: !python/file 7-test_login_history.py
+
+connector_references: 
+  - description: "Salesforce SVG logo"
+    file_path: "assets/salesforce.svg"
+    environment_path: "connectors/salesforce/salesforce.svg"
+    format: "svg"
+    required: true
+    read_only: true
+
+user_references: []
+
+configs:
+  - name: "salesforce_username"
+    description: "Username for authenticating with Salesforce, note this should be included as username in SalesforceConnectorConfig"
+    value: !env/var SALESFORCE_USERNAME
+
+  - name: "salesforce_password"
+    description: "Password for authenticating with Salesforce, note this should be included as password in SalesforceConnectorConfig"
+    value: !env/var SALESFORCE_PASSWORD
+
+  - name: "salesforce_security_token"
+    description: "Security token for authenticating with Salesforce, note this should be included as security_token in SalesforceConnectorConfig"
+    value: !env/var SALESFORCE_SECURITY_TOKEN
+
+  - name: "salesforce_domain"
+    description: "Salesforce instance domain (e.g., login.salesforce.com or test.salesforce.com)"
+    value: "login"
+
+  - name: "salesforce_api_version"
+    description: "Salesforce API version to use"
+    value: "58.0"
+
+  - name: "salesforce_api_request_timeout"
+    description: "Request timeout in seconds"
+    value: 30
+
+  - name: "salesforce_api_max_retries"
+    description: "Number of times to retry API requests upon failure"
+    value: 3
+
+  - name: "login_history_retention_days"
+    description: "Number of days of login history to retrieve and analyze"
+    value: 30
+
+  - name: "sensitive_fields_mapping"
+    description: "Mapping of Salesforce objects to fields that contain sensitive data"
+    value: {
+      "Account": ["Phone", "BillingAddress", "Website", "Description"],
+      "Contact": ["Email", "Phone", "MailingAddress", "SSN__c", "DateOfBirth__c"],
+      "Lead": ["Email", "Phone", "Address", "Company"],
+      "User": ["Email", "LastLoginDate", "ProfileId", "UserRoleId"],
+      "ContentDocument": ["Title", "FileType", "ContentSize", "OwnerId"],
+      "PermissionSet": ["Name", "Label", "Description", "IsOwnedByProfile"],
+      "LoginIp": ["UsersId", "SourceIp", "CreatedDate"]
+    }
+
+  - name: "additional considerations"
+    description: |
+      Additional considerations for the generation of specifically the Salesforce connector 
+      with regards to the connector framework as provided - please keep these strongly in mind
+    value: [
+      "SalesforceConnectorConfig should derive from ConnectorConfig, this is not a connector of type AlertProviderConnectorConfig config",
+      "authentication should not be a tool, tools should handle authentication when used (so should not be explicitly exposed)",
+      "utilize the query target options to determine which objects are valid for the target, and then use the target to select which objects to actually pull data from for the respective tools as shown in the unit tests",
+      "handle Salesforce-specific error cases including API limits and governor limits",
+      "use simple-salesforce instead of using httpx or raw requests to allow for more reliable authentication",
+      #"support for SOQL queries is essential for flexible data retrieval",
+      #"implement security-focused queries and analysis for login history and field changes"
+    ]
+# !Salesforce

@@ -1,0 +1,155 @@
+# Rapid7 InsightIDR
+name: "rapid7_insightidr"
+category: "Security Operations"
+description: "Create an API integration with Rapid7 InsightIDR to ingest, manage, and analyze security event data"
+
+specs:
+  - description: |
+      The Rapid7 InsightIDR Connector is able to authenticate with Rapid7 InsightIDR APIs per its implementation in the code 
+      environment only
+    preconditions: |
+      Valid Rapid7 InsightIDR API key is required for authentication
+    postconditions: |
+      The Rapid7 InsightIDR connector is able to authenticate properly with Rapid7 InsightIDR APIs using API key authentication;
+      The Rapid7 InsightIDR connector config is of type ConnectorConfig and not AlertProviderConnectorConfig;
+
+  - description: |
+      Rapid7 InsightIDR Connector is able to list available data sources per user of get_query_target_options
+    preconditions: |
+      A valid authenticated session with Rapid7 InsightIDR APIs
+    postconditions: |
+      Connector successfully enumerates available data sources (investigations, alerts, logs, assets, users) 
+      to populate the target options of the Rapid7InsightIDRTarget;
+
+  - description: |
+      Rapid7 InsightIDR Connector is able to retrieve security investigations and alerts
+    preconditions: |
+      A valid authenticated session with Rapid7 InsightIDR APIs
+    postconditions: |
+      Per the configuration as contained in Rapid7InsightIDRTarget as provided to Rapid7InsightIDRConnectorTools, it is possible
+      to get security investigations including priority levels, status, and alert correlations;
+      Ensure that the respective get_rapid7_insightidr_investigations function in the Rapid7InsightIDRConnectorTools is not hardcoding
+      any return values;
+
+  - description: |
+      Rapid7 InsightIDR Connector is able to retrieve security logs and event data
+    preconditions: |
+      A valid authenticated session with Rapid7 InsightIDR APIs
+    postconditions: |
+      Connector successfully retrieves security logs including event sources, timestamps, user activities,
+      and normalized security event information;
+
+  - description: |
+      Rapid7 InsightIDR Connector is able to retrieve asset and user behavior data
+    preconditions: |
+      A valid authenticated session with Rapid7 InsightIDR APIs
+    postconditions: |
+      Connector successfully retrieves asset information and user behavior analytics including risk scores,
+      activity patterns, and threat indicators with contextual security analysis
+
+tests:
+  - description: |
+      This checks to see that the connector is able to return a listing of tools
+    preconditions: |
+      A data connector implementation per the provided interfaces
+    postconditions: |
+      The data connector is able to provide a list of supported tools and interfaces
+    function_to_run: !python/file 1-test_tools_interface.py
+
+  - description: |
+      This checks that the connector can successfully verify its connection
+    preconditions: |
+      A connector implementation adhering to ConnectorInterface is available as 'connector'
+    postconditions: |
+      The check_connection method returns True if the connector is correctly configured
+    function_to_run: !python/file 2-test_connector_check_connection.py
+
+  - description: |
+      get_query_target_options enumerates Rapid7 InsightIDR data sources
+    preconditions: |
+      Valid Rapid7 InsightIDR API credentials
+    postconditions: |
+      Possible to retrieve the list of Rapid7 InsightIDR data sources using get_query_target_options
+      and to then use this to set the options in a given Rapid7InsightIDRConnectorConfig which is 
+      subclassed from ConnectorConfig - adheres to example API response in query_target_options.py;
+      These must be real data sources, and not simulated;
+    function_to_run: !python/file 3-test_query_target_options.py
+
+  - description: |
+      Retrieve Rapid7 InsightIDR security investigations and alerts
+    preconditions: |
+      Valid Rapid7 InsightIDR API credentials
+    postconditions: |
+      Possible to retrieve security investigations by way of connector tools;
+      This list includes investigation details, priority levels, and status information; 
+      These must be real investigation data, and not simulated;
+    function_to_run: !python/file 4-test_get_investigations.py
+
+  - description: |
+      Retrieve Rapid7 InsightIDR security logs and event data
+    preconditions: |
+      Valid Rapid7 InsightIDR API credentials
+    postconditions: |
+      Possible to retrieve security logs including event sources and timestamps;
+      This list includes log entries, user activities, and normalized event information; 
+      These must be real log data, and not simulated;
+    function_to_run: !python/file 5-test_get_logs.py
+
+  - description: |
+      Retrieve Rapid7 InsightIDR asset and user behavior data
+    preconditions: |
+      Valid Rapid7 InsightIDR API credentials
+    postconditions: |
+      Possible to retrieve asset and user behavior data including risk scores and activity patterns;
+      This list includes asset details, user analytics, and threat indicators; 
+      These must be real asset and user data, and not simulated;
+    function_to_run: !python/file 6-test_get_assets_users.py
+
+connector_references: 
+  - description: "Rapid7 InsightIDR logo"
+    file_path: "assets/rapid7_insightidr.png"
+    environment_path: "connectors/rapid7_insightidr/rapid7_insightidr.png"
+    format: "png"
+    required: true
+    read_only: true
+
+user_references: []
+
+configs:
+  - name: "rapid7_insightidr_api_url"
+    description: "The base URL for Rapid7 InsightIDR APIs, note this should be included as api_url in Rapid7InsightIDRConnectorConfig"
+    value: "https://us.api.insight.rapid7.com"
+
+  - name: "rapid7_insightidr_api_key"
+    description: "API Key for authenticating with Rapid7 InsightIDR APIs, note this should be included as api_key in Rapid7InsightIDRConnectorConfig"
+    value: !env/var
+
+  - name: "rapid7_insightidr_api_request_timeout"
+    description: "Request timeout in seconds"
+    value: 60
+
+  - name: "rapid7_insightidr_api_max_retries"
+    description: "Number of times to retry API requests upon failure"
+    value: 3
+
+  - name: "rapid7_insightidr_default_limit"
+    description: "Default limit for API response pagination"
+    value: 100
+
+  - name: "additional considerations"
+    description: |
+      Additional considerations for the generation of specifically the Rapid7 InsightIDR connector 
+      with regards to the connector framework as provided - please keep these strongly in mind
+    value: [
+      "Rapid7InsightIDRConnectorConfig should derive from ConnectorConfig, this is not a connector of type AlertProviderConnectorConfig config",
+      "authentication should not be a tool, tools should handle authentication when used (so should not be explicitly exposed)",
+      "utilize the query target options to determine which data sources are valid for the target, and then use the target to select which sources to actually pull data from for the respective tools as shown in the unit tests",
+      "Rapid7 InsightIDR APIs require proper API key authentication in headers",
+      "implement proper rate limiting and pagination handling for large datasets",
+      "handle different data types (investigations, alerts, logs, assets, users) appropriately",
+      "support Rapid7 InsightIDR's RESTful API architecture and response formats",
+      "handle Rapid7 InsightIDR's specific response formats and error codes properly",
+      "implement proper handling of Rapid7 InsightIDR's time-based queries and filters",
+      "support Rapid7 InsightIDR's user behavior analytics and threat detection capabilities"
+    ]
+# !Rapid7 InsightIDR

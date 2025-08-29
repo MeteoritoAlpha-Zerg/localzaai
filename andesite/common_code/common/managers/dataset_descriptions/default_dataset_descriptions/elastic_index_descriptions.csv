@@ -1,0 +1,2 @@
+connector,path,description
+"elastic",".ds-winlogbeat-8.17.2-2025.04.04-000001","This Elastic index aggregates comprehensive Sysmon logs and Windows event logs, offering a granular view of Windows system activities. It captures detailed data including process executions, network connections, and file modifications, enabling deep security analysis and threat detection. Use this index to monitor, search, and analyze behaviors to swiftly identify and respond to potential security incidents within the environment.",

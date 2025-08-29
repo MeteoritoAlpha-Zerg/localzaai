@@ -1,0 +1,275 @@
+# SharePoint
+name: "sharepoint"
+category: "Document Management"
+description: "Create an API integration with Microsoft SharePoint per its API specification"
+
+specs:
+  - description: |
+      The SharePoint Connector is able to authenticate with SharePoint per its implementation in the code 
+      environment only
+    preconditions: |
+      This spec has no strict preconditions
+    postconditions: |
+      The SharePoint connector is able to authenticate properly with a SharePoint instance;
+      The SharePoint connector config is of type ConnectorConfig and not AlertProviderConnectorConfig;
+
+  - description: |
+      SharePoint Connector is able to list SharePoint sites per user of get_query_target_options
+    preconditions: |
+      A valid authenticated session with SharePoint
+    postconditions: |
+      Connector successfully enumerates sites to populate the target options of the SharePointTarget;
+
+  - description: |
+      SharePoint Connector is able to list document libraries for a selected site
+    preconditions: |
+      A valid authenticated session with SharePoint
+    postconditions: |
+      Per the configuration as contained in SharePointTarget as provided to SharePointConnectorTools, it is possible
+      to get a list of document libraries along with their respective metadata and other relevant details
+      as may be relevant;
+      Ensure that the respective get_sharepoint_document_libraries function in the SharePointConnectorTools is not hardcoding
+      any return values;
+
+  - description: |
+      SharePoint Connector is able to retrieve documents from a document library
+    preconditions: |
+      A valid authenticated session with SharePoint
+    postconditions: |
+      Connector successfully retrieves documents from the selected document library provided as a param
+      to the get documents tool;
+      The documents contain appropriate metadata such as name, id, size, and file type;
+
+  # - description: |
+  #     SharePoint Connector is able to upload documents to a document library
+  #   preconditions: |
+  #     A valid authenticated session with SharePoint
+  #   postconditions: |
+  #     Connector successfully uploads documents to the specified document library;
+  #     The uploaded document can be verified to exist in the library after upload;
+
+  # - description: |
+  #     SharePoint Connector is able to retrieve SharePoint list items
+  #   preconditions: |
+  #     A valid authenticated session with SharePoint
+  #   postconditions: |
+  #     Connector successfully retrieves list items from a specified SharePoint list;
+  #     The list items contain appropriate metadata including columns defined in the list;
+
+  # - description: |
+  #     SharePoint Connector is able to support multiple sites through SharePointTarget
+  #   preconditions: |
+  #     A valid authenticated session with SharePoint
+  #   postconditions: |
+  #     The SharePointTarget correctly supports specification of multiple site names;
+  #     The connector can switch between different sites based on the target configuration;
+
+  # - description: |
+  #     SharePoint Connector is able to filter documents by file type
+  #   preconditions: |
+  #     A valid authenticated session with SharePoint
+  #   postconditions: |
+  #     Connector successfully filters documents by specified file type when retrieving from a document library;
+  #     The filtered results only contain documents matching the specified criteria;
+
+  # - description: |
+  #     SharePoint Connector is able to retrieve content from an existing SharePoint document
+  #   preconditions: |
+  #     A valid authenticated session with SharePoint and an existing document ID
+  #   postconditions: |
+  #     Connector successfully retrieves the content of the specified document per its execution in the environment;
+  #     The content is returned in an appropriate format based on the document type;
+
+  # - description: |
+  #     SharePoint Connector can search across multiple sites and libraries
+  #   preconditions: |
+  #     A valid authenticated session with SharePoint
+  #   postconditions: |
+  #     Connector successfully performs a search operation across multiple sites and document libraries;
+  #     Search results include relevant metadata and location information for each matching item;
+
+tests:
+  - description: "This checks to see that the connector is able to return a listing of tools"
+    preconditions: "A data connector implementation per the provided interfaces"
+    postconditions: "The data connector is able to provide a list of supported tools and interfaces"
+    function_to_run: !python/file 1-test_tools_interface.py
+
+  - description: "This checks that the connector can successfully verify its connection."
+    preconditions: "A connector implementation adhering to ConnectorInterface is available as 'connector'."
+    postconditions: "The check_connection method returns True if the connector is correctly configured."
+    function_to_run: !python/file 2-test_connector_check_connection.py
+
+  - description: |
+      get_query_target_options enumerates SharePoint sites
+    preconditions: |
+      An existing SharePoint API token and credentials
+    postconditions: |
+      Possible to retrieve the list of SharePoint sites using get_query_target_options
+      and to then use this to set the options in a given SharePointConnectorConfig which is 
+      subclassed from ConnectorConfig - adheres to example API response in query_target_options.py;
+      These must be real spaces, and not simulated;
+    function_to_run: !python/file 3-test_query_target_options.py
+
+  - description: "Retrieve document libraries for SharePoint site"
+    preconditions: "An existing SharePoint API token and credentials"
+    postconditions: |
+      Possible to retrieve a set of document libraries from a particular SharePoint site by way of query target options;
+      These must be real document libraries, and not simulated;
+    function_to_run: !python/file 4-test_document_library_retrieval.py
+
+  - description: "Retrieve documents from a SharePoint document library"
+    preconditions: "An existing SharePoint API token and credentials"
+    postconditions: |
+      Possible to retrieve documents from a specific SharePoint document library;
+      These must be real documents, and not simulated;
+    function_to_run: !python/file 5-test_document_retrieval.py
+
+  # - description: "Scan documents for sensitive content"
+  #   preconditions: "An existing SharePoint API token and credentials with appropriate permissions"
+  #   postconditions: |
+  #     Possible to scan SharePoint documents for sensitive content;
+  #     Results should identify documents with potential security concerns;
+  #   function_to_run: !python/file 6-test_sensitive_content_scan.py
+
+  # - description: "Monitor file access and sharing activity"
+  #   preconditions: "An existing SharePoint API token and credentials with appropriate permissions"
+  #   postconditions: |
+  #     Possible to monitor file access and external sharing activity;
+  #     Results should identify potentially risky sharing or access patterns;
+  #   function_to_run: !python/file 7-test_access_monitoring.py
+
+  # - description: "Enforce document security policies"
+  #   preconditions: "An existing SharePoint API token and credentials with appropriate permissions"
+  #   postconditions: |
+  #     Possible to verify and enforce security policies on SharePoint content;
+  #     Results should indicate compliance status with security policies;
+  #   function_to_run: !python/file 8-test_security_policy_enforcement.py
+
+connector_references: 
+  - description: "SharePoint PNG logo"
+    file_path: "assets/sharepoint.png"
+    environment_path: "connectors/sharepoint/sharepoint.png"
+    format: "svg"
+    required: true
+    read_only: true
+
+user_references: []
+
+configs:
+  - name: "sharepoint_url"
+    description: "The URL of your SharePoint site (e.g., https://yourcompany.sharepoint.com), note this should be included as url in SharePointConnectorConfig"
+    value: !env/var 
+
+  - name: "sharepoint_client_id"
+    description: "Azure AD Application (client) ID for authenticating with SharePoint, note this should be included as client_id in SharePointConnectorConfig"
+    value: !env/var 
+
+  - name: "sharepoint_client_secret"
+    description: "Client secret for authenticating with SharePoint, note this should be included as client_secret in SharePointConnectorConfig"
+    value: !env/var 
+
+  - name: "sharepoint_tenant_id"
+    description: "Azure AD Tenant ID for authentication, note this should be included as tenant_id in SharePointConnectorConfig"
+    value: !env/var 
+
+  - name: "sharepoint_site_name"
+    description: "Default SharePoint site name to use (optional)"
+    value: !env/var 
+
+  - name: "sharepoint_library_name"
+    description: "Default document library name to use (optional)"
+    value: !env/var 
+
+  - name: "sharepoint_api_version"
+    description: "Microsoft Graph API version to use"
+    value: "v1.0"
+
+  - name: "sharepoint_api_request_timeout"
+    description: "Request timeout in seconds"
+    value: 30
+
+  - name: "sharepoint_api_max_retries"
+    description: "Number of times to retry API requests upon failure"
+    value: 3
+
+  - name: "max_sites_to_scan"
+    description: "Maximum number of sites to scan for sensitive content"
+    value: 10
+
+  - name: "activity_lookback_days"
+    description: "Number of days to look back for file access and sharing activity"
+    value: 30
+
+  - name: "sensitive_content_patterns"
+    description: "Patterns to identify potentially sensitive content"
+    value: [
+      "confidential", 
+      "secret", 
+      "private", 
+      "restricted", 
+      "personal", 
+      "passport", 
+      "ssn", 
+      "social security", 
+      "credit card",
+      "password",
+      "credentials",
+      "patient",
+      "hipaa",
+      "pii",
+      "phi"
+    ]
+
+  - name: "security_policies"
+    description: "Security policies to enforce on SharePoint content"
+    value: [
+      {
+        "name": "no_anonymous_sharing",
+        "description": "No anonymous sharing links allowed",
+        "severity": "high"
+      },
+      {
+        "name": "classify_sensitive_documents",
+        "description": "All documents containing sensitive information must be classified",
+        "severity": "medium"
+      },
+      {
+        "name": "limit_admin_accounts",
+        "description": "Limited number of site collection administrators",
+        "severity": "medium"
+      },
+      {
+        "name": "enforce_version_history",
+        "description": "Version history must be enabled on all document libraries",
+        "severity": "low"
+      },
+      {
+        "name": "expiring_external_access",
+        "description": "External access must have expiration dates set",
+        "severity": "high"
+      }
+    ]
+
+  - name: "auto_remediate_policy_violations"
+    description: "Automatically attempt to remediate policy violations when found"
+    value: false
+
+  - name: "additional considerations"
+    description: |
+      Additional considerations for the generation of specifically the SharePoint connector 
+      with regards to the connector framework as provided - please keep these strongly in mind
+    value: [
+      "authentication should be handled using OAuth with Microsoft Graph API",
+      "utilize the query target options which should provide the enumeration of SharePoint sites and document libraries",
+      "support for Microsoft Graph API queries is essential for flexible data retrieval",
+      "handle SharePoint-specific error cases and ensure proper error messages are returned",
+      "consider SharePoint's rate limiting and pagination for large datasets",
+      "support file operations including download, upload, and metadata retrieval",
+      "implement proper handling of document versioning if required",
+      "scan document content for sensitive information to support DLP use cases",
+      "monitor external sharing and file access patterns for security analysis",
+      "support security policy enforcement to identify and fix non-compliant permissions",
+      "implement graceful fallbacks when sensitive scanning features aren't available",
+      "utilize Microsoft Graph security APIs for enhanced threat detection when available"
+    ]
+# !SharePoint

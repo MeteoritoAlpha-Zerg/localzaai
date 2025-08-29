@@ -1,0 +1,177 @@
+# eMASS
+name: "emass"
+category: "Compliance Management"
+description: "Create an API integration with eMASS to ingest, analyze, and process compliance data, security control assessments, and risk management reports"
+
+specs:
+  - description: |
+      The eMASS Connector is able to authenticate with eMASS API per its implementation in the code 
+      environment only
+    preconditions: |
+      This spec has no strict preconditions
+    postconditions: |
+      The eMASS connector is able to authenticate properly with the eMASS API;
+      The eMASS connector config is of type ConnectorConfig and not AlertProviderConnectorConfig;
+
+  - description: |
+      eMASS Connector is able to list available systems and assessment packages per user of get_query_target_options
+    preconditions: |
+      A valid authenticated session with eMASS API
+    postconditions: |
+      Connector successfully enumerates systems and assessment packages to populate the target options of the eMASSTarget;
+
+  - description: |
+      eMASS Connector is able to list system information and assessment packages
+    preconditions: |
+      A valid authenticated session with eMASS API
+    postconditions: |
+      Per the configuration as contained in eMASSTarget as provided to eMASSConnectorTools, it is possible
+      to get a list of systems and assessment packages along with their respective metadata and compliance status
+      as may be relevant for compliance analysis;
+      Ensure that the respective get_emass_systems function in the eMASSConnectorTools is not hardcoding
+      any return values;
+
+  - description: |
+      eMASS Connector is able to retrieve security control assessments from selected systems
+    preconditions: |
+      A valid authenticated session with eMASS API
+    postconditions: |
+      Connector successfully retrieves security control assessments, control implementation status, and compliance data
+      from the selected systems provided as parameters to the query tool
+
+  - description: |
+      eMASS Connector is able to analyze risk management reports and compliance metrics
+    preconditions: |
+      A valid authenticated session with eMASS API
+    postconditions: |
+      Connector successfully retrieves and analyzes risk management reports, POA&M data,
+      and compliance metrics for comprehensive risk management oversight
+
+tests:
+  - description: |
+      This checks to see that the connector is able to return a listing of tools
+    preconditions: |
+      A data connector implementation per the provided interfaces
+    postconditions: |
+      The data connector is able to provide a list of supported tools and interfaces
+    function_to_run: !python/file 1-test_tools_interface.py
+
+  - description: |
+      This checks that the connector can successfully verify its connection
+    preconditions: |
+      A connector implementation adhering to ConnectorInterface is available as 'connector'
+    postconditions: |
+      The check_connection method returns True if the connector is correctly configured
+    function_to_run: !python/file 2-test_connector_check_connection.py
+
+  - description: |
+      get_query_target_options enumerates eMASS systems and assessment packages
+    preconditions: |
+      An existing eMASS API key and certificate credentials
+    postconditions: |
+      Possible to retrieve the list of eMASS systems and assessment packages using get_query_target_options
+      and to then use this to set the options in a given eMASSConnectorConfig which is 
+      subclassed from ConnectorConfig - adheres to example API response in query_target_options.py;
+      These must be real systems and packages, and not simulated;
+    function_to_run: !python/file 3-test_query_target_options.py
+
+  - description: |
+      List eMASS systems for selected targets
+    preconditions: |
+      An existing eMASS API key and certificate credentials
+    postconditions: |
+      Possible to retrieve the list of eMASS systems by way of connector tools;
+      This list includes metadata and compliance status for risk management analysis; 
+      These must be real systems, and not simulated;
+    function_to_run: !python/file 4-test_list_systems.py
+
+  - description: |
+      Retrieve security control assessments from selected eMASS systems
+    preconditions: |
+      An existing eMASS API key and certificate credentials with access to control assessment data
+    postconditions: |
+      Possible to retrieve security control assessments and implementation status from selected systems;
+      This query returns actual control assessment data from the target systems; 
+      These must be real control assessments, and not simulated;
+    function_to_run: !python/file 5-test_control_assessments.py
+
+  - description: |
+      Analyze risk management reports and POA&M data
+    preconditions: |
+      An existing eMASS API key and certificate credentials with access to risk management data
+    postconditions: |
+      Possible to retrieve and analyze risk management reports and POA&M data;
+      The analysis should support comprehensive compliance management use cases;
+      Results must be real risk management data from the eMASS instance;
+    function_to_run: !python/file 6-test_risk_management.py
+
+connector_references: 
+  - description: "eMASS logo"
+    file_path: "assets/emass.svg"
+    environment_path: "connectors/emass/emass.svg"
+    format: "svg"
+    required: true
+    read_only: true
+
+user_references: []
+
+configs:
+  - name: "emass_api_key"
+    description: "API Key for authenticating with eMASS, note this should be included as api_key in eMASSConnectorConfig"
+    value: !env/var 
+
+  - name: "emass_api_key_id"
+    description: "API Key ID for authenticating with eMASS, note this should be included as api_key_id in eMASSConnectorConfig"
+    value: !env/var 
+
+  - name: "emass_base_url"
+    description: "Base URL for eMASS API, note this should be included as base_url in eMASSConnectorConfig"
+    value: !env/var 
+
+  - name: "emass_client_cert_path"
+    description: "Path to client certificate file for eMASS authentication"
+    value: !env/var 
+
+  - name: "emass_client_key_path"
+    description: "Path to client private key file for eMASS authentication"
+    value: !env/var 
+
+  - name: "emass_api_request_timeout"
+    description: "Request timeout in seconds"
+    value: 60
+
+  - name: "emass_api_max_retries"
+    description: "Number of times to retry API requests upon failure"
+    value: 3
+
+  - name: "emass_max_controls_per_request"
+    description: "Maximum number of security controls to retrieve per request"
+    value: 500
+
+  - name: "emass_control_status_filter"
+    description: "Filter controls by implementation status (implemented, planned, alternative, not_applicable)"
+    value: "all"
+
+  - name: "emass_poam_status_filter"
+    description: "Filter POA&Ms by status (ongoing, risk_accepted, completed, not_applicable)"
+    value: "ongoing"
+
+  - name: "emass_compliance_level_filter"
+    description: "Filter by compliance level (fisma_low, fisma_moderate, fisma_high)"
+    value: "all"
+
+  - name: "additional considerations"
+    description: |
+      Additional considerations for the generation of specifically the eMASS connector 
+      with regards to the connector framework as provided - please keep these strongly in mind
+    value: [
+      "eMASSConnectorConfig should derive from ConnectorConfig, this is not a connector of type AlertProviderConnectorConfig config",
+      "authentication should not be a tool, tools should handle authentication when used (so should not be explicitly exposed)",
+      "utilize the query target options to determine which systems and assessment packages are valid for the target, and then use the target to select which data sources to actually pull data from for the respective tools as shown in the unit tests",
+      "focus on compliance data, security control assessments, and risk management reports",
+      "support filtering by control implementation status, POA&M status, and compliance levels for targeted analysis",
+      "handle both individual system assessments and aggregated compliance reporting capabilities",
+      "include NIST controls, FISMA compliance levels, and POA&M tracking for comprehensive risk management",
+      "support certificate-based authentication as required by eMASS API"
+    ]
+# !eMASS

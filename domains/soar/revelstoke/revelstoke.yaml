@@ -1,0 +1,167 @@
+# Revelstoke
+name: "revelstoke"
+category: "SOAR & Automation"
+description: "Create an API integration with Revelstoke SOAR to automate security workflows, incident response, and threat intelligence processing"
+
+specs:
+  - description: |
+      The Revelstoke Connector is able to authenticate with Revelstoke SOAR per its implementation in the code 
+      environment only
+    preconditions: |
+      This spec has no strict preconditions
+    postconditions: |
+      The Revelstoke connector is able to authenticate properly with a Revelstoke SOAR instance;
+      The Revelstoke connector config is of type ConnectorConfig and not AlertProviderConnectorConfig;
+
+  - description: |
+      Revelstoke Connector is able to list Revelstoke playbooks and cases per user of get_query_target_options
+    preconditions: |
+      A valid authenticated session with Revelstoke SOAR
+    postconditions: |
+      Connector successfully enumerates playbooks and cases to populate the target options of the RevelstokeSoarTarget;
+
+  - description: |
+      Revelstoke Connector is able to retrieve playbook and case information
+    preconditions: |
+      A valid authenticated session with Revelstoke SOAR
+    postconditions: |
+      Per the configuration as contained in RevelstokeSoarTarget as provided to RevelstokeSoarConnectorTools, it is possible
+      to get a list of playbooks and cases along with their respective metadata and other relevant details
+      as may be relevant for SOAR operations and incident response;
+      Ensure that the respective get_revelstoke_playbooks function in the RevelstokeSoarConnectorTools is not hardcoding
+      any return values;
+
+  - description: |
+      Revelstoke Connector is able to execute playbooks and manage incidents from selected cases and workflows
+    preconditions: |
+      A valid authenticated session with Revelstoke SOAR
+    postconditions: |
+      Connector successfully executes playbooks and manages incidents for the selected cases and workflows provided as params
+      to the automation tools, supporting security workflow automation and incident response
+
+  - description: |
+      Revelstoke Connector is able to retrieve threat intelligence and security artifacts from SOAR platform
+    preconditions: |
+      A valid authenticated session with Revelstoke SOAR
+    postconditions: |
+      Connector successfully retrieves threat intelligence and security artifacts from Revelstoke SOAR for analysis and processing
+
+tests:
+  - description: |
+      This checks to see that the connector is able to return a listing of tools
+    preconditions: |
+      A data connector implementation per the provided interfaces
+    postconditions: |
+      The data connector is able to provide a list of supported tools and interfaces
+    function_to_run: !python/file 1-test_tools_interface.py
+
+  - description: |
+      This checks that the connector can successfully verify its connection
+    preconditions: |
+      A connector implementation adhering to ConnectorInterface is available as 'connector'
+    postconditions: |
+      The check_connection method returns True if the connector is correctly configured
+    function_to_run: !python/file 2-test_connector_check_connection.py
+
+  - description: |
+      get_query_target_options enumerates Revelstoke playbooks and cases
+    preconditions: |
+      An existing Revelstoke SOAR instance with valid API credentials
+    postconditions: |
+      Possible to retrieve the list of Revelstoke playbooks and cases using get_query_target_options
+      and to then use this to set the options in a given RevelstokeSoarConnectorConfig which is 
+      subclassed from ConnectorConfig - adheres to example API response in query_target_options.py;
+      These must be real playbooks and cases, and not simulated;
+    function_to_run: !python/file 3-test_query_target_options.py
+
+  - description: |
+      List Revelstoke playbooks and cases for selected targets
+    preconditions: |
+      An existing Revelstoke SOAR instance with valid API credentials
+    postconditions: |
+      Possible to retrieve the list of Revelstoke playbooks and cases by way of connector tools;
+      This list includes details of the playbooks and cases including metadata and status; 
+      These must be real playbooks and cases, and not simulated;
+    function_to_run: !python/file 4-test_list_playbooks.py
+
+  - description: |
+      Execute Revelstoke playbooks and manage incidents from selected cases and workflows
+    preconditions: |
+      An existing Revelstoke SOAR instance with valid API credentials
+    postconditions: |
+      Possible to execute Revelstoke playbooks and manage incidents for the selected cases and workflows as passed as params to the connector tools;
+      This includes workflow execution and incident management capabilities; 
+      These must be real playbook executions and incident operations, and not simulated;
+    function_to_run: !python/file 5-test_playbook_execution.py
+
+  - description: |
+      Retrieve threat intelligence and security artifacts from Revelstoke SOAR platform
+    preconditions: |
+      An existing Revelstoke SOAR instance with valid API credentials
+    postconditions: |
+      Possible to retrieve threat intelligence and security artifacts from Revelstoke SOAR platform;
+      This includes threat data and security artifacts for analysis and processing; 
+      These must be real threat intelligence and artifacts, and not simulated;
+    function_to_run: !python/file 6-test_threat_intelligence.py
+
+connector_references: 
+  - description: "Revelstoke logo"
+    file_path: "assets/revelstoke.jpeg"
+    environment_path: "connectors/revelstoke/revelstoke.jpeg"
+    format: "jpeg"
+    required: true
+    read_only: true
+
+user_references: []
+
+configs:
+  - name: "revelstoke_url"
+    description: "The base URL of the Revelstoke SOAR instance, note this should be included as url in RevelstokeSoarConnectorConfig"
+    value: !env/var 
+
+  - name: "revelstoke_api_key"
+    description: "API key for authenticating with Revelstoke SOAR API, note this should be included as api_key in RevelstokeSoarConnectorConfig"
+    value: !env/var 
+
+  - name: "revelstoke_username"
+    description: "Username for authenticating with Revelstoke SOAR (alternative to API key), note this should be included as username in RevelstokeSoarConnectorConfig"
+    value: !env/var
+
+  - name: "revelstoke_password"
+    description: "Password for authenticating with Revelstoke SOAR (alternative to API key), note this should be included as password in RevelstokeSoarConnectorConfig"
+    value: !env/var
+
+  - name: "revelstoke_tenant_id"
+    description: "Tenant ID for multi-tenant Revelstoke SOAR instances, note this should be included as tenant_id in RevelstokeSoarConnectorConfig"
+    value: !env/var
+
+  - name: "revelstoke_api_request_timeout"
+    description: "Request timeout in seconds"
+    value: 120
+
+  - name: "revelstoke_api_max_retries"
+    description: "Number of times to retry API requests upon failure"
+    value: 3
+
+  - name: "revelstoke_verify_ssl"
+    description: "Whether to verify SSL certificates"
+    value: true
+
+  - name: "revelstoke_playbook_timeout"
+    description: "Timeout for Revelstoke playbook execution in seconds"
+    value: 600
+
+  - name: "additional considerations"
+    description: |
+      Additional considerations for the generation of specifically the Revelstoke SOAR connector 
+      with regards to the connector framework as provided - please keep these strongly in mind
+    value: [
+      "RevelstokeSoarConnectorConfig should derive from ConnectorConfig, this is not a connector of type AlertProviderConnectorConfig config",
+      "authentication should not be a tool, tools should handle authentication when used (so should not be explicitly exposed)",
+      "utilize the query target options to determine which playbooks and cases are valid for the target, and then use the target to select which playbooks and cases to actually pull data from for the respective tools as shown in the unit tests",
+      "support both API key and username/password authentication methods",
+      "handle playbook execution lifecycle appropriately (trigger, monitor, retrieve results)",
+      "support Revelstoke SOAR's workflow automation and case management capabilities",
+      "integrate with threat intelligence processing and artifact management features"
+    ]
+# !Revelstoke

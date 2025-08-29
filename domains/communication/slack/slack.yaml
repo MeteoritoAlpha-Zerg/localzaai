@@ -1,0 +1,167 @@
+# Slack
+name: "slack"
+category: "Communication"
+description: "Create an API integration with Slack per its API specification"
+
+specs:
+  - description: |
+      The Slack Connector is able to authenticate with Slack per its implementation in the code 
+      environment only
+    preconditions: |
+      This spec has no strict preconditions
+    postconditions: |
+      The Slack connector is able to authenticate properly with a Slack workspace;
+      The Slack connector config is of type ConnectorConfig and not AlertProviderConnectorConfig;
+
+  - description: |
+      Slack Connector is able to list Slack channels per user of get_query_target_options
+    preconditions: |
+      A valid authenticated session with Slack
+    postconditions: |
+      Connector successfully enumerates channels to populate the target options of the SlackTarget;
+
+  - description: |
+      Slack Connector is able to list channel information
+    preconditions: |
+      A valid authenticated session with Slack
+    postconditions: |
+      Per the configuration as contained in SlackTarget as provided to SlackConnectorTools, it is possible
+      to get a list of channels along with their respective description and other relevant channel details
+      as may be relevant;
+      Ensure that the respective get_slack_channels function in the SlackConnectorTools is not hardcoding
+      any return values;
+
+  - description: |
+      Slack Connector is able to list messages in a selected channel
+    preconditions: |
+      A valid authenticated session with Slack
+    postconditions: |
+      Connector successfully lists messages for the selected channel provided as a param
+      to the list messages tool
+
+  - description: |
+      Slack Connector is able to send messages to a selected channel
+    preconditions: |
+      A valid authenticated session with Slack
+    postconditions: |
+      Connector successfully sends a message to the selected channel provided as a param
+      to the send message tool
+
+  - description: |
+      Slack Connector is able to list users in the workspace
+    preconditions: |
+      A valid authenticated session with Slack
+    postconditions: |
+      Connector successfully lists users in the workspace with their profile information
+
+tests:
+  - description: |
+      This checks to see that the connector is able to return a listing of tools
+    preconditions: |
+      A data connector implementation per the provided interfaces
+    postconditions: |
+      The data connector is able to provide a list of supported tools and interfaces
+    function_to_run: !python/file 1-test_tools_interface.py
+
+  - description: |
+      This checks that the connector can successfully verify its connection
+    preconditions: |
+      A connector implementation adhering to ConnectorInterface is available as 'connector'
+    postconditions: |
+      The check_connection method returns True if the connector is correctly configured
+    function_to_run: !python/file 2-test_connector_check_connection.py
+
+  - description: |
+      get_query_target_options enumerates Slack channels
+    preconditions: |
+      An existing Slack Bot Token and workspace access
+    postconditions: |
+      Possible to retrieve the list of Slack channels using get_query_target_options
+      and to then use this to set the options in a given SlackConnectorConfig which is 
+      subclassed from ConnectorConfig - adheres to example API response in query_target_options.py;
+      These must be real channels, and not simulated;
+    function_to_run: !python/file 3-test_query_target_options.py
+
+  - description: |
+      List Slack channels for selected Slack channels in target
+    preconditions: |
+      An existing Slack Bot Token and workspace access
+    postconditions: |
+      Possible to retrieve the list of Slack channels by way of connector tools;
+      This list includes details of the channels to be listed in results; 
+      These must be real channels, and not simulated;
+    function_to_run: !python/file 4-test_list_channels.py
+
+  - description: |
+      Retrieve messages for selected Slack channel passed as param
+    preconditions: |
+      An existing Slack Bot Token and workspace access
+    postconditions: |
+      Possible to retrieve a set of messages for the selected Slack channel as passed as a param to the connector tools;
+      This list only includes messages of the target channel to be listed in results; 
+      These must be real messages, and not simulated;
+    function_to_run: !python/file 5-test_message_retrieval.py
+
+  - description: |
+      Send message to selected Slack channel passed as param
+    preconditions: |
+      An existing Slack Bot Token and workspace access
+    postconditions: |
+      Possible to send a message to the selected Slack channel as passed as a param to the connector tools;
+      The message is successfully delivered to the target channel;
+      This must be a real message send, and not simulated;
+    function_to_run: !python/file 6-test_send_message.py
+
+  - description: |
+      List users in the Slack workspace
+    preconditions: |
+      An existing Slack Bot Token and workspace access
+    postconditions: |
+      Possible to retrieve a list of users in the workspace with their profile information;
+      These must be real users, and not simulated;
+    function_to_run: !python/file 7-test_list_users.py
+
+connector_references: 
+  - description: "Slack logo"
+    file_path: "assets/slack.png"
+    environment_path: "connectors/slack/slack.png"
+    format: "png"
+    required: true
+    read_only: true
+
+user_references: []
+
+configs:
+  - name: "slack_bot_token"
+    description: "Bot Token for authenticating with Slack API, note this should be included as bot_token in SlackConnectorConfig"
+    value: !env/var 
+
+  - name: "slack_workspace_url"
+    description: "The workspace URL for the Slack instance, note this should be included as workspace_url in SlackConnectorConfig"
+    value: !env/var 
+
+  - name: "slack_api_request_timeout"
+    description: "Request timeout in seconds"
+    value: 30
+
+  - name: "slack_api_max_retries"
+    description: "Number of times to retry API requests upon failure"
+    value: 3
+
+  - name: "slack_messages_limit"
+    description: "Maximum number of messages to retrieve per request"
+    value: 100
+
+  - name: "additional considerations"
+    description: |
+      Additional considerations for the generation of specifically the Slack connector 
+      with regards to the connector framework as provided - please keep these strongly in mind
+    value: [
+      "SlackConnectorConfig should derive from ConnectorConfig, this is not a connector of type AlertProviderConnectorConfig config",
+      "authentication should not be a tool, tools should handle authentication when used (so should not be explicitly exposed)",
+      "utilize the query target options to determine which channels are valid for the target, and then use the target to select which channels to actually pull data from for the respective tools as shown in the unit tests",
+      "Slack API uses OAuth2 Bearer token authentication with bot tokens",
+      "Follow Slack API rate limiting best practices",
+      "Handle both public and private channels appropriately based on bot permissions"
+    ]
+# !Slack

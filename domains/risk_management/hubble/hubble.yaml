@@ -1,0 +1,163 @@
+# Hubble
+name: "hubble"
+category: "Risk Intelligence & Compliance"
+description: "Create an API integration with Hubble to ingest, analyze, and process cybersecurity risk intelligence, compliance data, and security posture assessments"
+
+specs:
+  - description: |
+      The Hubble Connector is able to authenticate with Hubble per its implementation in the code 
+      environment only
+    preconditions: |
+      This spec has no strict preconditions
+    postconditions: |
+      The Hubble connector is able to authenticate properly with a Hubble instance;
+      The Hubble connector config is of type ConnectorConfig and not AlertProviderConnectorConfig;
+
+  - description: |
+      Hubble Connector is able to list Hubble organizations and asset groups per user of get_query_target_options
+    preconditions: |
+      A valid authenticated session with Hubble
+    postconditions: |
+      Connector successfully enumerates organizations and asset groups to populate the target options of the HubbleTarget;
+
+  - description: |
+      Hubble Connector is able to retrieve organization and asset group information
+    preconditions: |
+      A valid authenticated session with Hubble
+    postconditions: |
+      Per the configuration as contained in HubbleTarget as provided to HubbleConnectorTools, it is possible
+      to get a list of organizations and asset groups along with their respective metadata and other relevant details
+      as may be relevant for risk intelligence and compliance analysis;
+      Ensure that the respective get_hubble_organizations function in the HubbleConnectorTools is not hardcoding
+      any return values;
+
+  - description: |
+      Hubble Connector is able to retrieve cybersecurity risk assessments and compliance data from selected organizations and asset groups
+    preconditions: |
+      A valid authenticated session with Hubble
+    postconditions: |
+      Connector successfully retrieves cybersecurity risk assessments and compliance data for the selected organizations and asset groups provided as params
+      to the risk tools, supporting risk intelligence analysis and compliance monitoring
+
+  - description: |
+      Hubble Connector is able to retrieve security posture assessments and vulnerability data
+    preconditions: |
+      A valid authenticated session with Hubble
+    postconditions: |
+      Connector successfully retrieves security posture assessments and vulnerability data for comprehensive risk analysis
+
+tests:
+  - description: |
+      This checks to see that the connector is able to return a listing of tools
+    preconditions: |
+      A data connector implementation per the provided interfaces
+    postconditions: |
+      The data connector is able to provide a list of supported tools and interfaces
+    function_to_run: !python/file 1-test_tools_interface.py
+
+  - description: |
+      This checks that the connector can successfully verify its connection
+    preconditions: |
+      A connector implementation adhering to ConnectorInterface is available as 'connector'
+    postconditions: |
+      The check_connection method returns True if the connector is correctly configured
+    function_to_run: !python/file 2-test_connector_check_connection.py
+
+  - description: |
+      get_query_target_options enumerates Hubble organizations and asset groups
+    preconditions: |
+      An existing Hubble instance with valid API credentials
+    postconditions: |
+      Possible to retrieve the list of Hubble organizations and asset groups using get_query_target_options
+      and to then use this to set the options in a given HubbleConnectorConfig which is 
+      subclassed from ConnectorConfig - adheres to example API response in query_target_options.py;
+      These must be real organizations and asset groups, and not simulated;
+    function_to_run: !python/file 3-test_query_target_options.py
+
+  - description: |
+      List Hubble organizations and asset groups for selected targets
+    preconditions: |
+      An existing Hubble instance with valid API credentials
+    postconditions: |
+      Possible to retrieve the list of Hubble organizations and asset groups by way of connector tools;
+      This list includes details of the organizations and asset groups including metadata and risk profiles; 
+      These must be real organizations and asset groups, and not simulated;
+    function_to_run: !python/file 4-test_list_organizations.py
+
+  - description: |
+      Retrieve cybersecurity risk assessments and compliance data from selected Hubble organizations and asset groups
+    preconditions: |
+      An existing Hubble instance with valid API credentials
+    postconditions: |
+      Possible to retrieve cybersecurity risk assessments and compliance data from the selected Hubble organizations and asset groups as passed as params to the connector tools;
+      This list includes risk assessment data and compliance metrics for analysis; 
+      These must be real risk assessments and compliance data, and not simulated;
+    function_to_run: !python/file 5-test_risk_assessments.py
+
+  - description: |
+      Retrieve security posture assessments and vulnerability data from Hubble
+    preconditions: |
+      An existing Hubble instance with valid API credentials
+    postconditions: |
+      Possible to retrieve security posture assessments and vulnerability data from Hubble;
+      This includes security posture metrics and vulnerability intelligence for comprehensive risk analysis; 
+      These must be real security posture data and vulnerabilities, and not simulated;
+    function_to_run: !python/file 6-test_security_posture.py
+
+connector_references: 
+  - description: "Hubble logo"
+    file_path: "assets/hubble.png"
+    environment_path: "connectors/hubble/hubble.png"
+    format: "png"
+    required: true
+    read_only: true
+
+user_references: []
+
+configs:
+  - name: "hubble_url"
+    description: "The base URL of the Hubble instance, note this should be included as url in HubbleConnectorConfig"
+    value: !env/var 
+
+  - name: "hubble_api_key"
+    description: "API key for authenticating with Hubble API, note this should be included as api_key in HubbleConnectorConfig"
+    value: !env/var 
+
+  - name: "hubble_client_id"
+    description: "Client ID for OAuth authentication with Hubble (alternative to API key), note this should be included as client_id in HubbleConnectorConfig"
+    value: !env/var
+
+  - name: "hubble_client_secret"
+    description: "Client secret for OAuth authentication with Hubble (alternative to API key), note this should be included as client_secret in HubbleConnectorConfig"
+    value: !env/var
+
+  - name: "hubble_api_request_timeout"
+    description: "Request timeout in seconds"
+    value: 60
+
+  - name: "hubble_api_max_retries"
+    description: "Number of times to retry API requests upon failure"
+    value: 3
+
+  - name: "hubble_verify_ssl"
+    description: "Whether to verify SSL certificates"
+    value: true
+
+  - name: "hubble_rate_limit"
+    description: "Rate limit for API requests (requests per minute)"
+    value: 100
+
+  - name: "additional considerations"
+    description: |
+      Additional considerations for the generation of specifically the Hubble connector 
+      with regards to the connector framework as provided - please keep these strongly in mind
+    value: [
+      "HubbleConnectorConfig should derive from ConnectorConfig, this is not a connector of type AlertProviderConnectorConfig config",
+      "authentication should not be a tool, tools should handle authentication when used (so should not be explicitly exposed)",
+      "utilize the query target options to determine which organizations and asset groups are valid for the target, and then use the target to select which organizations and asset groups to actually pull data from for the respective tools as shown in the unit tests",
+      "support both API key and OAuth authentication methods",
+      "handle rate limiting appropriately for Hubble API constraints",
+      "support common risk intelligence data: risk scores, compliance status, vulnerability assessments, and security posture metrics",
+      "integrate with Hubble's risk assessment frameworks and compliance standards"
+    ]
+# !Hubble

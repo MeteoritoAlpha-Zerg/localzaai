@@ -1,0 +1,101 @@
+{
+    "data": [
+        {
+            "agentDetectionInfo": {
+                "accountId": "test",
+                "machineType": "test",
+                "name": "test",
+                "osFamily": "test",
+                "osName": "test",
+                "osRevision": "test",
+                "siteId": "test",
+                "uuid": "test",
+                "version": "test"
+            },
+            "agentRealtimeInfo": {
+                "id": "test",
+                "infected": false,
+                "isActive": false,
+                "isDecommissioned": false,
+                "machineType": "test",
+                "name": "test",
+                "os": "test",
+                "uuid": "test"
+            },
+            "alertInfo": {
+                "alertId": "test",
+                "analystVerdict": "test",
+                "createdAt": "test",
+                "dstIp": "test",
+                "dstPort": "test",
+                "dvEventId": "test",
+                "eventType": "test",
+                "hitType": "test",
+                "incidentStatus": "test",
+                "isEdr": true,
+                "netEventDirection": "test",
+                "reportedAt": "test",
+                "source": "test",
+                "srcIp": "test",
+                "srcPort": "test",
+                "updatedAt": "test"
+            },
+            "containerInfo": {},
+            "kubernetesInfo": {},
+            "ruleInfo": {
+                "description": "test",
+                "id": "test",
+                "name": "test",
+                "queryLang": "test",
+                "queryType": "test",
+                "s1ql": "test",
+                "scopeLevel": "test",
+                "severity": "test",
+                "treatAsThreat": "test"
+            },
+            "sourceParentProcessInfo": {
+                "commandline": "test",
+                "fileHashMd5": "test",
+                "fileHashSha1": "test",
+                "fileHashSha256": "test",
+                "filePath": "test",
+                "fileSignerIdentity": "test",
+                "integrityLevel": "test",
+                "name": "test",
+                "pid": "test",
+                "pidStarttime": "test",
+                "storyline": "test",
+                "subsystem": "test",
+                "uniqueId": "test",
+                "user": "test"
+            },
+            "sourceProcessInfo": {
+                "commandline": "test",
+                "fileHashMd5": "test",
+                "fileHashSha1": "test",
+                "fileHashSha256": "test",
+                "filePath": "test",
+                "fileSignerIdentity": "test",
+                "integrityLevel": "test",
+                "name": "test",
+                "pid": "test",
+                "pidStarttime": "test",
+                "storyline": "test",
+                "subsystem": "test",
+                "uniqueId": "test",
+                "user": "test"
+            },
+            "targetProcessInfo": {
+                "tgtFileCreatedAt": "test",
+                "tgtFileIsSigned": "test",
+                "tgtFileModifiedAt": "test",
+                "tgtProcIntegrityLevel": "test",
+                "tgtProcessStartTime": "test"
+            }
+        }
+    ],
+    "pagination": {
+        "nextCursor": "test",
+        "totalItems": 1
+    }
+}

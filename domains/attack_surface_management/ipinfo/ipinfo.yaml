@@ -1,0 +1,226 @@
+# IPInfo
+name: "ipinfo"
+category: "IP Intelligence & Geolocation"
+description: "Create an API integration with IPInfo to ingest, analyze, and process IP intelligence data, geolocation insights, and cyber threat intelligence"
+
+specs:
+  - description: |
+      The IPInfo Connector is able to authenticate with IPInfo per its implementation in the code 
+      environment only
+    preconditions: |
+      This spec has no strict preconditions
+    postconditions: |
+      The IPInfo connector is able to authenticate properly with an IPInfo instance;
+      The IPInfo connector config is of type ConnectorConfig and not AlertProviderConnectorConfig;
+
+  - description: |
+      IPInfo Connector is able to list available data services and intelligence feeds per user of get_query_target_options
+    preconditions: |
+      A valid authenticated session with IPInfo
+    postconditions: |
+      Connector successfully enumerates available data services, intelligence feeds, and geolocation services to populate the target options of the IPInfoTarget;
+
+  - description: |
+      IPInfo Connector is able to retrieve IP geolocation and geographic intelligence data
+    preconditions: |
+      A valid authenticated session with IPInfo
+    postconditions: |
+      Per the configuration as contained in IPInfoTarget as provided to IPInfoConnectorTools, it is possible
+      to get comprehensive IP geolocation data including country, region, city, ISP, organization, and coordinate information
+      as may be relevant;
+      Ensure that the respective get_ipinfo_geolocation function in the IPInfoConnectorTools is not hardcoding
+      any return values;
+
+  - description: |
+      IPInfo Connector is able to retrieve IP intelligence and threat analysis data
+    preconditions: |
+      A valid authenticated session with IPInfo
+    postconditions: |
+      Connector successfully retrieves IP intelligence data including threat classifications, privacy detection, 
+      hosting analysis, and security assessments for IP addresses and ranges;
+
+  - description: |
+      IPInfo Connector is able to retrieve ASN and network infrastructure data
+    preconditions: |
+      A valid authenticated session with IPInfo
+    postconditions: |
+      Connector successfully retrieves Autonomous System Number (ASN) data, network infrastructure information,
+      and ISP details for comprehensive network analysis;
+
+  - description: |
+      IPInfo Connector is able to perform bulk IP lookups and batch processing
+    preconditions: |
+      A valid authenticated session with IPInfo
+    postconditions: |
+      Connector successfully processes bulk IP address lists, performs batch geolocation and intelligence lookups,
+      and returns comprehensive data for multiple IP addresses efficiently;
+
+  - description: |
+      IPInfo Connector is able to retrieve privacy and hosting intelligence data
+    preconditions: |
+      A valid authenticated session with IPInfo
+    postconditions: |
+      Connector successfully retrieves privacy detection data, hosting provider analysis, proxy detection,
+      and VPN identification for security and compliance analysis;
+
+tests:
+  - description: |
+      This checks to see that the connector is able to return a listing of tools
+    preconditions: |
+      A data connector implementation per the provided interfaces
+    postconditions: |
+      The data connector is able to provide a list of supported tools and interfaces
+    function_to_run: !python/file 1-test_tools_interface.py
+
+  - description: |
+      This checks that the connector can successfully verify its connection
+    preconditions: |
+      A connector implementation adhering to ConnectorInterface is available as 'connector'
+    postconditions: |
+      The check_connection method returns True if the connector is correctly configured
+    function_to_run: !python/file 2-test_connector_check_connection.py
+
+  - description: |
+      get_query_target_options enumerates IPInfo data services and intelligence feeds
+    preconditions: |
+      An existing IPInfo API token and service access
+    postconditions: |
+      Possible to retrieve the list of available IPInfo data services, intelligence feeds, and geolocation services using get_query_target_options
+      and to then use this to set the options in a given IPInfoConnectorConfig which is 
+      subclassed from ConnectorConfig - adheres to example API response in query_target_options.py;
+      These must be real data services and feeds, and not simulated;
+    function_to_run: !python/file 3-test_query_target_options.py
+
+  - description: |
+      Retrieve IP geolocation and geographic intelligence data
+    preconditions: |
+      An existing IPInfo API token and service access
+    postconditions: |
+      Possible to retrieve comprehensive IP geolocation data by way of connector tools;
+      This data includes detailed location information, ISP details, and coordinate data; 
+      These must be real geolocation data, and not simulated;
+    function_to_run: !python/file 4-test_ip_geolocation.py
+
+  - description: |
+      Retrieve IP intelligence and threat analysis data
+    preconditions: |
+      An existing IPInfo API token and service access
+    postconditions: |
+      Possible to retrieve IP intelligence and threat analysis data passed to the connector tools;
+      This data includes threat classifications, privacy detection, and security assessments; 
+      These must be real intelligence data, and not simulated;
+    function_to_run: !python/file 5-test_ip_intelligence.py
+
+  - description: |
+      Retrieve ASN and network infrastructure data
+    preconditions: |
+      An existing IPInfo API token and service access
+    postconditions: |
+      Possible to retrieve ASN and network infrastructure data passed to the connector tools;
+      This information includes autonomous system details, network ranges, and ISP information; 
+      These must be real network data, and not simulated;
+    function_to_run: !python/file 6-test_asn_data.py
+
+  - description: |
+      Perform bulk IP lookups and batch processing
+    preconditions: |
+      An existing IPInfo API token and service access
+    postconditions: |
+      Possible to process bulk IP address lists and retrieve batch intelligence data passed to the connector tools;
+      This processing includes efficient handling of multiple IP addresses and comprehensive result sets; 
+      These must be real bulk processing results, and not simulated;
+    function_to_run: !python/file 7-test_bulk_lookup.py
+
+  - description: |
+      Retrieve privacy and hosting intelligence data
+    preconditions: |
+      An existing IPInfo API token and service access
+    postconditions: |
+      Possible to retrieve privacy detection and hosting analysis data passed to the connector tools;
+      This data includes proxy detection, VPN identification, and hosting provider analysis; 
+      These must be real privacy and hosting data, and not simulated;
+    function_to_run: !python/file 8-test_privacy_hosting.py
+
+connector_references: 
+  - description: "IPInfo logo"
+    file_path: "assets/ipinfo.png"
+    environment_path: "connectors/ipinfo/ipinfo.png"
+    format: "png"
+    required: true
+    read_only: true
+
+user_references: []
+
+configs:
+  - name: "ipinfo_api_token"
+    description: "API Token for authenticating with IPInfo, note this should be included as api_token in IPInfoConnectorConfig"
+    value: !env/var 
+
+  - name: "ipinfo_base_url"
+    description: "Base URL for IPInfo API (defaults to https://ipinfo.io)"
+    value: "https://ipinfo.io"
+
+  - name: "ipinfo_api_version"
+    description: "IPInfo API version to use (defaults to v1)"
+    value: "v1"
+
+  - name: "ipinfo_api_request_timeout"
+    description: "Request timeout in seconds"
+    value: 30
+
+  - name: "ipinfo_api_max_retries"
+    description: "Number of times to retry API requests upon failure"
+    value: 3
+
+  - name: "ipinfo_default_page_size"
+    description: "Default number of results to return per page for bulk operations"
+    value: 1000
+
+  - name: "ipinfo_max_batch_size"
+    description: "Maximum number of IP addresses to process in a single batch request"
+    value: 1000
+
+  - name: "ipinfo_rate_limit_delay"
+    description: "Delay in seconds between API requests to respect rate limiting"
+    value: 0.1
+
+  - name: "ipinfo_cache_ttl"
+    description: "Time-to-live for cached IP data in seconds"
+    value: 3600
+
+  - name: "ipinfo_include_hostname"
+    description: "Include hostname resolution in IP lookups"
+    value: true
+
+  - name: "ipinfo_include_company"
+    description: "Include company/organization data in IP lookups"
+    value: true
+
+  - name: "ipinfo_include_privacy"
+    description: "Include privacy detection data in IP lookups"
+    value: true
+
+  - name: "ipinfo_include_abuse"
+    description: "Include abuse contact information in IP lookups"
+    value: true
+
+  - name: "additional considerations"
+    description: |
+      Additional considerations for the generation of specifically the IPInfo connector 
+      with regards to the connector framework as provided - please keep these strongly in mind
+    value: [
+      "IPInfoConnectorConfig should derive from ConnectorConfig, this is not a connector of type AlertProviderConnectorConfig config",
+      "authentication should not be a tool, tools should handle authentication when used (so should not be explicitly exposed)",
+      "utilize the query target options to determine which data services and intelligence feeds are valid for the target, and then use the target to select which data sources to actually pull from for the respective tools as shown in the unit tests",
+      "implement proper batch processing for large IP address datasets as IPInfo API supports bulk operations with up to 1000 IPs per request",
+      "handle rate limiting gracefully as IPInfo API has usage quotas and request rate limits based on subscription tier",
+      "support both single IP lookups and bulk batch processing for efficient data retrieval",
+      "provide meaningful error messages when API quota is exceeded, authentication fails, or IP addresses are invalid",
+      "implement caching mechanisms for IP data to reduce API calls and improve performance",
+      "ensure proper handling of IPv4 and IPv6 addresses with appropriate validation",
+      "support configurable data inclusion options (hostname, company, privacy, abuse) for optimized API usage",
+      "maintain data integrity when processing large volumes of IP intelligence and geolocation data",
+      "implement proper error handling for invalid IP addresses, network timeouts, and service unavailability",
+      "leverage IPInfo's specialized datasets (ASN, privacy, abuse, hosted domains) for comprehensive IP intelligence"
+    ]
+# !IPInfo

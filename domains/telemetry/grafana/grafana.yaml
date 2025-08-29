@@ -1,0 +1,298 @@
+# Grafana
+name: "grafana"
+category: "Monitoring and Observability"
+description: "Create an API integration with Grafana per its API specification"
+
+stages:
+  - name: verify credentials
+    type: before
+    description: verifies the credentials as provided to zerg for the connector generation
+    preconditions: None
+    postconditions: Credentials are verified and valid
+    code_to_run: !python/program stages/1-verify_credentials.py
+
+  - name: stage data
+    type: before
+    description: verifies that data instance has valid data in it and if not populates / stages the data in the target instance 
+    preconditions: valid credentials per the verify credential stage
+    postconditions: Target instance is valid, has valid data per the intents of this specification
+    code_to_run: !python/program stages/2-stage_data.py
+
+specs:
+  - description: |
+      The Grafana Connector is able to authenticate with Grafana per its implementation in the code 
+      environment only
+    preconditions: |
+      This spec has no strict preconditions
+    postconditions: |
+      The Grafana connector is able to authenticate properly with a Grafana instance;
+      The Grafana connector config is of type ConnectorConfig and not AlertProviderConnectorConfig;
+
+  - description: |
+      Grafana Connector is able to list dashboards per user of get_query_target_options
+    preconditions: |
+      A valid authenticated session with Grafana
+    postconditions: |
+      Connector successfully enumerates dashboards to populate the target options of the GrafanaTarget;
+
+  - description: |
+      Grafana Connector is able to list data sources and their available metrics
+    preconditions: |
+      A valid authenticated session with Grafana
+    postconditions: |
+      Per the configuration as contained in GrafanaTarget as provided to GrafanaConnectorTools, it is possible
+      to get a list of data sources along with their respective metrics and other relevant details
+      as may be relevant;
+      Ensure that the respective get_grafana_datasources function in the GrafanaConnectorTools is not hardcoding
+      any return values;
+
+  - description: |
+      Grafana Connector is able to retrieve dashboard data from a selected dashboard
+    preconditions: |
+      A valid authenticated session with Grafana
+    postconditions: |
+      Connector successfully retrieves dashboard configuration and panel data for the selected dashboard provided as a param
+      to the retrieve dashboard tool
+
+  - description: |
+      Grafana Connector is able to query metrics from data sources with time ranges
+    preconditions: |
+      A valid authenticated session with Grafana
+    postconditions: |
+      Connector successfully executes queries against configured data sources with specified time ranges;
+      Results include appropriate metric data with timestamps and values;
+
+  - description: |
+      Grafana Connector is able to list and retrieve annotations
+    preconditions: |
+      A valid authenticated session with Grafana
+    postconditions: |
+      Connector successfully retrieves annotations with filtering capabilities by time range and tags;
+
+  - description: |
+      Grafana Connector integrates with the official Grafana SDK through direct TypeScript marshalling
+    preconditions: |
+      Node.js runtime is available in the environment;
+      TypeScript compilation environment is set up;
+      Official @grafana/data and @grafana/toolkit packages are installed;
+    postconditions: |
+      TypeScript SDK functions are compiled and available for direct invocation;
+      Python connector can execute TypeScript SDK methods through subprocess calls;
+      SDK operations return JSON-serialized results to Python;
+
+  - description: |
+      TypeScript SDK marshalling handles authentication without persistent state
+    preconditions: |
+      Valid Grafana credentials are provided;
+      Compiled TypeScript SDK wrapper exists;
+    postconditions: |
+      Each SDK operation includes authentication as part of the call;
+      No persistent authentication state is maintained between calls;
+      SDK authentication is handled within individual TypeScript executions;
+
+  - description: |
+      TypeScript SDK marshalling provides stateless operation interface
+    preconditions: |
+      Compiled TypeScript SDK wrapper is available;
+      Python connector formats requests as JSON parameters;
+    postconditions: |
+      Each SDK method call is independent and stateless;
+      TypeScript wrapper accepts JSON input and returns JSON output;
+      All necessary context is passed with each individual call;
+
+  - description: |
+      TypeScript SDK marshalling supports all required Grafana operations
+    preconditions: |
+      Grafana SDK wrapper is compiled and operational;
+      Target Grafana instance is accessible;
+    postconditions: |
+      SDK wrapper exposes methods for dashboards, data sources, annotations, and alerts;
+      Complex queries and transformations use appropriate SDK interfaces;
+      Plugin-specific operations are handled through SDK's native methods;
+
+tests:
+  - description: |
+      This checks to see that the connector is able to return a listing of tools
+    preconditions: |
+      A data connector implementation per the provided interfaces
+    postconditions: |
+      The data connector is able to provide a list of supported tools and interfaces
+    function_to_run: !python/file 1-test_tools_interface.py
+
+  - description: |
+      This checks that the connector can successfully verify its connection
+    preconditions: |
+      A connector implementation adhering to ConnectorInterface is available as 'connector'
+    postconditions: |
+      The check_connection method returns True if the connector is correctly configured
+    function_to_run: !python/file 2-test_connector_check_connection.py
+
+  - description: |
+      get_query_target_options enumerates Grafana dashboards
+    preconditions: |
+      Existing Grafana credentials with dashboard access
+    postconditions: |
+      Possible to retrieve the list of Grafana dashboards using get_query_target_options
+      and to then use this to set the options in a given GrafanaConnectorConfig which is 
+      subclassed from ConnectorConfig - adheres to example API response in query_target_options.py;
+      These must be real dashboards, and not simulated;
+    function_to_run: !python/file 3-test_query_target_options.py
+
+  - description: |
+      List Grafana data sources and available metrics for selected target
+    preconditions: |
+      Existing Grafana credentials with data source access
+    postconditions: |
+      Possible to retrieve the list of Grafana data sources and their available metrics by way of connector tools;
+      This list includes details of the data sources and metrics to be listed in results; 
+      These must be real data sources, and not simulated;
+    function_to_run: !python/file 4-test_list_datasources.py
+
+  - description: |
+      Retrieve dashboard configuration and panel data for selected Grafana dashboard
+    preconditions: |
+      Existing Grafana credentials with dashboard access
+    postconditions: |
+      Possible to retrieve dashboard configuration and panel data for the selected Grafana dashboard as passed as a param to the connector tools;
+      This data only includes information of the target dashboard to be listed in results; 
+      These must be real dashboard data, and not simulated;
+    function_to_run: !python/file 5-test_dashboard_retrieval.py
+
+  - description: |
+      Query Grafana metrics with filters and time ranges
+    preconditions: |
+      Existing Grafana credentials with data source access
+    postconditions: |
+      Possible to query Grafana data sources with specified queries, filters, and time ranges;
+      Results include appropriate metric data with timestamps and values;
+      Data points are correctly formatted according to the data source type;
+    function_to_run: !python/file 6-test_metric_queries.py
+
+  - description: |
+      Retrieve annotations with time range and tag filtering
+    preconditions: |
+      Existing Grafana credentials with annotation access
+    postconditions: |
+      Possible to retrieve annotations with specified time ranges and tag filters;
+      Results include annotation text, tags, timestamps, and associated dashboard/panel information;
+    function_to_run: !python/file 7-test_annotations.py
+
+  - description: |
+      List and retrieve alert rules and their current states
+    preconditions: |
+      Existing Grafana credentials with alerting access
+    postconditions: |
+      Possible to retrieve alert rules and their current evaluation states;
+      Results include alert rule configuration, current state, and evaluation history;
+    function_to_run: !python/file 8-test_alerts.py
+
+connector_references: 
+  - description: "Grafana SVG logo"
+    file_path: "assets/grafana.svg"
+    environment_path: "connectors/grafana/grafana.svg"
+    format: "svg"
+    required: true
+    read_only: true
+
+user_references: []
+
+configs:
+  - name: "grafana_url"
+    description: "The base URL of the Grafana instance (e.g., https://your-grafana.com), note this should be included as url in GrafanaConnectorConfig"
+    value: !env/var 
+
+  - name: "grafana_api_key"
+    description: "Grafana API key for authentication, note this should be included as api_key in GrafanaConnectorConfig"
+    value: !env/var 
+
+  - name: "grafana_username"
+    description: "Optional username for basic authentication (alternative to API key), note this should be included as username in GrafanaConnectorConfig"
+    value: !env/var 
+
+  - name: "grafana_password"
+    description: "Optional password for basic authentication (alternative to API key), note this should be included as password in GrafanaConnectorConfig"
+    value: !env/var 
+
+  - name: "grafana_org_id"
+    description: "Organization ID to use for multi-tenant Grafana instances"
+    value: 1
+
+  - name: "grafana_api_request_timeout"
+    description: "Request timeout in seconds"
+    value: 30
+
+  - name: "grafana_api_max_retries"
+    description: "Number of times to retry API requests upon failure"
+    value: 3
+
+  - name: "grafana_default_time_range"
+    description: "Default time range for queries (e.g., '1h', '6h', '24h')"
+    value: "1h"
+
+  - name: "grafana_max_data_points"
+    description: "Maximum number of data points to return in metric queries"
+    value: 1000
+
+  - name: "grafana_sdk_node_executable"
+    description: "Path to Node.js executable for running TypeScript SDK calls"
+    value: !env/var NODE_EXECUTABLE
+
+  - name: "grafana_sdk_wrapper_path"
+    description: "Path to compiled TypeScript SDK wrapper executable"
+    value: "./sdk/grafana-sdk-wrapper.js"
+
+  - name: "grafana_sdk_operation_timeout"
+    description: "Timeout in seconds for individual SDK operations"
+    value: 30
+
+  - name: "grafana_sdk_max_json_size"
+    description: "Maximum JSON payload size in MB for SDK operations"
+    value: 50
+
+  - name: "grafana_sdk_packages"
+    description: "Required Grafana SDK npm packages"
+    value: 
+      - "@grafana/data"
+      - "@grafana/toolkit"
+      - "@grafana/runtime"
+      - "@grafana/ui"
+
+  - name: "grafana_sdk_compile_on_init"
+    description: "Whether to compile TypeScript wrapper during connector initialization"
+    value: true
+
+  - name: "additional_considerations"
+    description: |
+      Additional considerations for the generation of specifically the Grafana connector 
+      with regards to the connector framework as provided - please keep these strongly in mind
+    value: 
+      - "GrafanaConnectorConfig should derive from ConnectorConfig, this is not a connector of type AlertProviderConnectorConfig config"
+      - "authentication should not be a tool, tools should handle authentication when used (so should not be explicitly exposed)"
+      - "utilize the query target options to determine which dashboards are valid for the target, and then use the target to select which dashboards to actually pull data from for the respective tools as shown in the unit tests"
+      - "include support for both Grafana dashboards, data sources, annotations, and alerts as separate tools within the connector"
+      - "ensure proper pagination handling when retrieving large sets of dashboard or metric data"
+      - "support both API key and basic authentication methods"
+      - "handle multi-tenant Grafana instances with organization ID specification"
+      - "implement proper error handling for different Grafana API response codes"
+      - "support various data source types (Prometheus, InfluxDB, Elasticsearch, etc.) through unified interface"
+      - "provide flexible time range handling compatible with Grafana's time range formats"
+      - "CRITICAL: All Grafana API interactions must go through the official Grafana SDK via TypeScript marshalling - no direct REST API calls"
+      - "TypeScript SDK wrapper should be stateless - each call includes all required context"
+      - "SDK operations should be invoked via subprocess.run() with JSON input/output"
+      - "Authentication credentials should be passed with each SDK operation call"
+      - "TypeScript wrapper should handle SDK initialization per operation"
+      - "Python connector should compile TypeScript wrapper during initialization if needed"
+      - "All SDK responses should be JSON-serialized for Python consumption"
+      - "Error handling should capture both subprocess errors and SDK-specific errors"
+      - "SDK method calls should include proper timeout handling"
+      - "TypeScript wrapper should validate input parameters before SDK calls"
+
+  - name: "sdk_marshalling_architecture"
+    description: |
+      Implementation architecture for TypeScript SDK marshalling - includes required components and example patterns
+    value:
+      - "COMPONENT 1: TypeScript SDK Wrapper (sdk/grafana-sdk-wrapper.ts) - Standalone TypeScript script that wraps Grafana SDK methods, accepts JSON input via command line arguments or stdin, returns JSON output via stdout, handles SDK initialization and cleanup per operation, no persistent state between calls"
+      - "COMPONENT 2: Python SDK Marshaller (connector/sdk_marshaller.py) - Python class that invokes TypeScript wrapper via subprocess, JSON serialization/deserialization handling, error parsing and translation, timeout and process management"
+      - "COMPONENT 3: Integration Methods (connector/grafana_sdk_integration.py) - High-level methods that wrap marshaller calls, type conversion and validation, operation-specific parameter handling, result processing and formatting"
+      - "PYTHON EXAMPLE: result = subprocess.run(['node', 'sdk/grafana-sdk-wrapper.js', 'get_dashboards', json.dumps({'url': config.url, 'api_key': config.api_key, 'org_id': config.org_id})], capture_output=True, text=True, timeout=30); dashboards = json.loads(result.stdout)"
+      - "TYPESCRIPT EXAMPLE: const operation = process.argv[2]; const params = JSON.parse(process.argv[3]); const sdk = new GrafanaSDK(params.url, params.api_key); const result = await sdk.getDashboards(params.org_id); console.log(JSON.stringify(result))"

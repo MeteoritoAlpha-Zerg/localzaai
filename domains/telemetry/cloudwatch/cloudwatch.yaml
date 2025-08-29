@@ -1,0 +1,149 @@
+# CloudWatch
+name: "cloudwatch"
+category: "Monitoring and Observability"
+description: "Create an API integration with AWS CloudWatch per its API specification"
+
+specs:
+  - description: |
+      The CloudWatch Connector is able to authenticate with AWS CloudWatch per its implementation in the code 
+      environment only
+    preconditions: |
+      This spec has no strict preconditions
+    postconditions: |
+      The CloudWatch connector is able to authenticate properly with an AWS account;
+      The CloudWatch connector config is of type ConnectorConfig and not AlertProviderConnectorConfig;
+
+  - description: |
+      CloudWatch Connector is able to list log groups per user of get_query_target_options
+    preconditions: |
+      A valid authenticated session with AWS CloudWatch
+    postconditions: |
+      Connector successfully enumerates log groups to populate the target options of the CloudWatchTarget;
+
+  - description: |
+      CloudWatch Connector is able to list metric namespaces and metrics
+    preconditions: |
+      A valid authenticated session with AWS CloudWatch
+    postconditions: |
+      Per the configuration as contained in CloudWatchTarget as provided to CloudWatchConnectorTools, it is possible
+      to get a list of metric namespaces along with their respective metrics and other relevant details
+      as may be relevant;
+      Ensure that the respective get_cloudwatch_metrics function in the CloudWatchConnectorTools is not hardcoding
+      any return values;
+
+  - description: |
+      CloudWatch Connector is able to retrieve log events from a selected log group
+    preconditions: |
+      A valid authenticated session with AWS CloudWatch
+    postconditions: |
+      Connector successfully retrieves log events for the selected log group provided as a param
+      to the retrieve logs tool
+
+tests:
+  - description: |
+      This checks to see that the connector is able to return a listing of tools
+    preconditions: |
+      A data connector implementation per the provided interfaces
+    postconditions: |
+      The data connector is able to provide a list of supported tools and interfaces
+    function_to_run: !python/file 1-test_tools_interface.py
+
+  - description: |
+      This checks that the connector can successfully verify its connection
+    preconditions: |
+      A connector implementation adhering to ConnectorInterface is available as 'connector'
+    postconditions: |
+      The check_connection method returns True if the connector is correctly configured
+    function_to_run: !python/file 2-test_connector_check_connection.py
+
+  - description: |
+      get_query_target_options enumerates CloudWatch log groups
+    preconditions: |
+      Existing AWS credentials with CloudWatch access
+    postconditions: |
+      Possible to retrieve the list of CloudWatch log groups using get_query_target_options
+      and to then use this to set the options in a given CloudWatchConnectorConfig which is 
+      subclassed from ConnectorConfig - adheres to example API response in query_target_options.py;
+      These must be real log groups, and not simulated;
+    function_to_run: !python/file 3-test_query_target_options.py
+
+  - description: |
+      List CloudWatch metric namespaces and metrics for selected target
+    preconditions: |
+      Existing AWS credentials with CloudWatch access
+    postconditions: |
+      Possible to retrieve the list of CloudWatch metric namespaces and metrics by way of connector tools;
+      This list includes details of the metrics to be listed in results; 
+      These must be real metrics, and not simulated;
+    function_to_run: !python/file 4-test_list_metrics.py
+
+  - description: |
+      Retrieve log events for selected CloudWatch log group passed as param
+    preconditions: |
+      Existing AWS credentials with CloudWatch access
+    postconditions: |
+      Possible to retrieve a set of log events for the selected CloudWatch log group as passed as a param to the connector tools;
+      This list only includes log events of the target log group to be listed in results; 
+      These must be real log events, and not simulated;
+    function_to_run: !python/file 5-test_log_retrieval.py
+
+  - description: |
+      Query CloudWatch metrics with filters and time ranges
+    preconditions: |
+      Existing AWS credentials with CloudWatch access
+    postconditions: |
+      Possible to query CloudWatch metrics with specified filters, dimensions, and time ranges;
+      Results include appropriate statistics (sum, average, minimum, maximum, etc.);
+      Data points are correctly formatted with timestamps and values;
+    function_to_run: !python/file 6-test_metric_queries.py
+
+connector_references: 
+  - description: "CloudWatch PNG logo"
+    file_path: "assets/cloudwatch.png"
+    environment_path: "connectors/cloudwatch/cloudwatch.png"
+    format: "png"
+    required: true
+    read_only: true
+
+user_references: []
+
+configs:
+  - name: "aws_region"
+    description: "The AWS region to connect to, note this should be included as region in CloudWatchConnectorConfig"
+    value: !env/var 
+
+  - name: "aws_access_key_id"
+    description: "AWS Access Key ID for authenticating with AWS services, note this should be included as access_key_id in CloudWatchConnectorConfig"
+    value: !env/var 
+
+  - name: "aws_secret_access_key"
+    description: "AWS Secret Access Key for authenticating with AWS services, note this should be included as secret_access_key in CloudWatchConnectorConfig"
+    value: !env/var 
+
+  # - name: "aws_session_token"
+  #   description: "Optional AWS Session Token for temporary credentials"
+  #   value: !env/var 
+
+  - name: "cloudwatch_api_request_timeout"
+    description: "Request timeout in seconds"
+    value: 30
+
+  - name: "cloudwatch_api_max_retries"
+    description: "Number of times to retry API requests upon failure"
+    value: 3
+
+  - name: "cloudwatch_log_retention_days"
+    description: "Default number of days to look back when querying logs"
+    value: 7
+
+  - name: "additional_considerations"
+    description: |
+      Additional considerations for the generation of specifically the CloudWatch connector 
+      with regards to the connector framework as provided - please keep these strongly in mind
+    value: [
+      "CloudWatchConnectorConfig should derive from ConnectorConfig, this is not a connector of type AlertProviderConnectorConfig config",
+      "authentication should not be a tool, tools should handle authentication when used (so should not be explicitly exposed)",
+      "utilize the query target options to determine which log groups are valid for the target, and then use the target to select which log groups to actually pull data from for the respective tools as shown in the unit tests",
+      "include support for both CloudWatch Logs and CloudWatch Metrics as separate tools within the connector",
+      "ensure proper pagination handling when retrieving large sets of logs or metrics data"
+    ]

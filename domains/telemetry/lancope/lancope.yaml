@@ -1,0 +1,159 @@
+# Cisco Stealthwatch
+name: "cisco_stealthwatch"
+category: "Network Security Monitoring"
+description: "Create an API integration with Cisco Stealthwatch (formerly Lancope) to ingest, analyze, and process network security telemetry, threat intelligence, and real-time alerts"
+
+specs:
+  - description: |
+      The Cisco Stealthwatch Connector is able to authenticate with Cisco Stealthwatch APIs per its implementation in the code 
+      environment only
+    preconditions: |
+      Valid Cisco Stealthwatch credentials (username/password) are required for authentication
+    postconditions: |
+      The Cisco Stealthwatch connector is able to authenticate properly with Cisco Stealthwatch APIs using basic authentication;
+      The Cisco Stealthwatch connector config is of type ConnectorConfig and not AlertProviderConnectorConfig;
+
+  - description: |
+      Cisco Stealthwatch Connector is able to list available data sources per user of get_query_target_options
+    preconditions: |
+      A valid authenticated session with Cisco Stealthwatch APIs
+    postconditions: |
+      Connector successfully enumerates available data sources (flows, security_events, alarms, host_groups, reporting) 
+      to populate the target options of the CiscoStealthwatchTarget;
+
+  - description: |
+      Cisco Stealthwatch Connector is able to retrieve network flow data and telemetry
+    preconditions: |
+      A valid authenticated session with Cisco Stealthwatch APIs
+    postconditions: |
+      Per the configuration as contained in CiscoStealthwatchTarget as provided to CiscoStealthwatchConnectorTools, it is possible
+      to get network flow data including source/destination IPs, protocols, ports, and traffic volumes;
+      Ensure that the respective get_cisco_stealthwatch_flows function in the CiscoStealthwatchConnectorTools is not hardcoding
+      any return values;
+
+  - description: |
+      Cisco Stealthwatch Connector is able to retrieve security events and threat intelligence
+    preconditions: |
+      A valid authenticated session with Cisco Stealthwatch APIs
+    postconditions: |
+      Connector successfully retrieves security events including threat indicators, anomaly detection results,
+      behavioral analytics, and network security alerts;
+
+  - description: |
+      Cisco Stealthwatch Connector is able to retrieve alarms and host group information
+    preconditions: |
+      A valid authenticated session with Cisco Stealthwatch APIs
+    postconditions: |
+      Connector successfully retrieves alarm data and host group configurations including
+      threat classifications, risk assessments, and network segmentation data with contextual analysis
+
+tests:
+  - description: |
+      This checks to see that the connector is able to return a listing of tools
+    preconditions: |
+      A data connector implementation per the provided interfaces
+    postconditions: |
+      The data connector is able to provide a list of supported tools and interfaces
+    function_to_run: !python/file 1-test_tools_interface.py
+
+  - description: |
+      This checks that the connector can successfully verify its connection
+    preconditions: |
+      A connector implementation adhering to ConnectorInterface is available as 'connector'
+    postconditions: |
+      The check_connection method returns True if the connector is correctly configured
+    function_to_run: !python/file 2-test_connector_check_connection.py
+
+  - description: |
+      get_query_target_options enumerates Cisco Stealthwatch data sources
+    preconditions: |
+      Valid Cisco Stealthwatch API credentials
+    postconditions: |
+      Possible to retrieve the list of Cisco Stealthwatch data sources using get_query_target_options
+      and to then use this to set the options in a given CiscoStealthwatchConnectorConfig which is 
+      subclassed from ConnectorConfig - adheres to example API response in query_target_options.py;
+      These must be real data sources, and not simulated;
+    function_to_run: !python/file 3-test_query_target_options.py
+
+  - description: |
+      Retrieve Cisco Stealthwatch network flow data and telemetry
+    preconditions: |
+      Valid Cisco Stealthwatch API credentials
+    postconditions: |
+      Possible to retrieve network flow data by way of connector tools;
+      This list includes flow details, traffic volumes, and network telemetry; 
+      These must be real flow data, and not simulated;
+    function_to_run: !python/file 4-test_get_flows.py
+
+  - description: |
+      Retrieve Cisco Stealthwatch security events and threat intelligence
+    preconditions: |
+      Valid Cisco Stealthwatch API credentials
+    postconditions: |
+      Possible to retrieve security events including threat indicators and behavioral analytics;
+      This list includes event details, anomaly detection, and threat classifications; 
+      These must be real security event data, and not simulated;
+    function_to_run: !python/file 5-test_get_security_events.py
+
+  - description: |
+      Retrieve Cisco Stealthwatch alarms and host group information
+    preconditions: |
+      Valid Cisco Stealthwatch API credentials
+    postconditions: |
+      Possible to retrieve alarm data and host group configurations;
+      This list includes alarm details, risk assessments, and network segmentation; 
+      These must be real alarm and host group data, and not simulated;
+    function_to_run: !python/file 6-test_get_alarms_hostgroups.py
+
+connector_references: 
+  - description: "Cisco Stealthwatch logo"
+    file_path: "assets/cisco_stealthwatch.jpg"
+    environment_path: "connectors/cisco_stealthwatch/cisco_stealthwatch.jpg"
+    format: "jpg"
+    required: true
+    read_only: true
+
+user_references: []
+
+configs:
+  - name: "cisco_stealthwatch_api_url"
+    description: "The base URL for Cisco Stealthwatch APIs, note this should be included as api_url in CiscoStealthwatchConnectorConfig"
+    value: !env/var
+
+  - name: "cisco_stealthwatch_username"
+    description: "Username for authenticating with Cisco Stealthwatch APIs, note this should be included as username in CiscoStealthwatchConnectorConfig"
+    value: !env/var
+
+  - name: "cisco_stealthwatch_password"
+    description: "Password for authenticating with Cisco Stealthwatch APIs, note this should be included as password in CiscoStealthwatchConnectorConfig"
+    value: !env/var
+
+  - name: "cisco_stealthwatch_api_request_timeout"
+    description: "Request timeout in seconds"
+    value: 60
+
+  - name: "cisco_stealthwatch_api_max_retries"
+    description: "Number of times to retry API requests upon failure"
+    value: 3
+
+  - name: "cisco_stealthwatch_default_limit"
+    description: "Default limit for API response pagination"
+    value: 100
+
+  - name: "additional considerations"
+    description: |
+      Additional considerations for the generation of specifically the Cisco Stealthwatch connector 
+      with regards to the connector framework as provided - please keep these strongly in mind
+    value: [
+      "CiscoStealthwatchConnectorConfig should derive from ConnectorConfig, this is not a connector of type AlertProviderConnectorConfig config",
+      "authentication should not be a tool, tools should handle authentication when used (so should not be explicitly exposed)",
+      "utilize the query target options to determine which data sources are valid for the target, and then use the target to select which sources to actually pull data from for the respective tools as shown in the unit tests",
+      "Cisco Stealthwatch APIs require proper basic authentication with username/password",
+      "implement proper rate limiting and pagination handling for large datasets",
+      "handle different data types (flows, security_events, alarms, host_groups, reporting) appropriately",
+      "support Cisco Stealthwatch's RESTful API architecture and response formats",
+      "handle Cisco Stealthwatch's specific response formats and error codes properly",
+      "implement proper handling of Cisco Stealthwatch's time-based queries and network telemetry",
+      "support Cisco Stealthwatch's behavioral analytics and anomaly detection capabilities"
+    ]
+# !Cisco Stealthwatch

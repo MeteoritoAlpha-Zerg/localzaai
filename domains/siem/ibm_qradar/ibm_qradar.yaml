@@ -1,0 +1,163 @@
+# IBM QRadar
+name: "ibm_qradar"
+category: "Security Information and Event Management"
+description: "Create an API integration with IBM QRadar for security data ingestion and analysis"
+
+specs:
+  - description: |
+      The IBM QRadar Connector is able to authenticate with IBM QRadar APIs per its implementation in the code 
+      environment only
+    preconditions: |
+      Valid IBM QRadar API token or username/password credentials are required for authentication
+    postconditions: |
+      The IBM QRadar connector is able to authenticate properly with IBM QRadar APIs using API token authentication;
+      The IBM QRadar connector config is of type ConnectorConfig and not AlertProviderConnectorConfig;
+
+  - description: |
+      IBM QRadar Connector is able to list available data sources per user of get_query_target_options
+    preconditions: |
+      A valid authenticated session with IBM QRadar APIs
+    postconditions: |
+      Connector successfully enumerates available data sources (offenses, events, flows, assets, rules) 
+      to populate the target options of the IBMQRadarTarget;
+
+  - description: |
+      IBM QRadar Connector is able to retrieve security offenses and incident data
+    preconditions: |
+      A valid authenticated session with IBM QRadar APIs
+    postconditions: |
+      Per the configuration as contained in IBMQRadarTarget as provided to IBMQRadarConnectorTools, it is possible
+      to get security offenses including severity levels, status, categories, and source information;
+      Ensure that the respective get_ibm_qradar_offenses function in the IBMQRadarConnectorTools is not hardcoding
+      any return values;
+
+  - description: |
+      IBM QRadar Connector is able to retrieve security events and log data
+    preconditions: |
+      A valid authenticated session with IBM QRadar APIs
+    postconditions: |
+      Connector successfully retrieves security events including log sources, event categories, timestamps,
+      and normalized security event information;
+
+  - description: |
+      IBM QRadar Connector is able to retrieve network flows and asset information
+    preconditions: |
+      A valid authenticated session with IBM QRadar APIs
+    postconditions: |
+      Connector successfully retrieves network flow data and asset information including IP addresses,
+      protocols, ports, and asset profiles with contextual security analysis
+
+tests:
+  - description: |
+      This checks to see that the connector is able to return a listing of tools
+    preconditions: |
+      A data connector implementation per the provided interfaces
+    postconditions: |
+      The data connector is able to provide a list of supported tools and interfaces
+    function_to_run: !python/file 1-test_tools_interface.py
+
+  - description: |
+      This checks that the connector can successfully verify its connection
+    preconditions: |
+      A connector implementation adhering to ConnectorInterface is available as 'connector'
+    postconditions: |
+      The check_connection method returns True if the connector is correctly configured
+    function_to_run: !python/file 2-test_connector_check_connection.py
+
+  - description: |
+      get_query_target_options enumerates IBM QRadar data sources
+    preconditions: |
+      Valid IBM QRadar API credentials
+    postconditions: |
+      Possible to retrieve the list of IBM QRadar data sources using get_query_target_options
+      and to then use this to set the options in a given IBMQRadarConnectorConfig which is 
+      subclassed from ConnectorConfig - adheres to example API response in query_target_options.py;
+      These must be real data sources, and not simulated;
+    function_to_run: !python/file 3-test_query_target_options.py
+
+  - description: |
+      Retrieve IBM QRadar security offenses and incident data
+    preconditions: |
+      Valid IBM QRadar API credentials
+    postconditions: |
+      Possible to retrieve security offenses by way of connector tools;
+      This list includes offense details, severity levels, and status information; 
+      These must be real offense data, and not simulated;
+    function_to_run: !python/file 4-test_get_offenses.py
+
+  - description: |
+      Retrieve IBM QRadar security events and log data
+    preconditions: |
+      Valid IBM QRadar API credentials
+    postconditions: |
+      Possible to retrieve security events including log sources and event categories;
+      This list includes event details, timestamps, and source information; 
+      These must be real event data, and not simulated;
+    function_to_run: !python/file 5-test_get_events.py
+
+  - description: |
+      Retrieve IBM QRadar network flows and asset information
+    preconditions: |
+      Valid IBM QRadar API credentials
+    postconditions: |
+      Possible to retrieve network flows and asset information including protocols and IP addresses;
+      This list includes flow data, asset profiles, and network topology information; 
+      These must be real flow and asset data, and not simulated;
+    function_to_run: !python/file 6-test_get_flows_assets.py
+
+connector_references: 
+  - description: "IBM QRadar logo"
+    file_path: "assets/ibm_qradar.png"
+    environment_path: "connectors/ibm_qradar/ibm_qradar.png"
+    format: "png"
+    required: true
+    read_only: true
+
+user_references: []
+
+configs:
+  - name: "ibm_qradar_api_url"
+    description: "The base URL for IBM QRadar APIs, note this should be included as api_url in IBMQRadarConnectorConfig"
+    value: !env/var
+
+  - name: "ibm_qradar_api_token"
+    description: "API Token for authenticating with IBM QRadar APIs, note this should be included as api_token in IBMQRadarConnectorConfig"
+    value: !env/var
+
+  - name: "ibm_qradar_username"
+    description: "Username for authenticating with IBM QRadar APIs (alternative to API token), note this should be included as username in IBMQRadarConnectorConfig"
+    value: !env/var
+
+  - name: "ibm_qradar_password"
+    description: "Password for authenticating with IBM QRadar APIs (alternative to API token), note this should be included as password in IBMQRadarConnectorConfig"
+    value: !env/var
+
+  - name: "ibm_qradar_api_request_timeout"
+    description: "Request timeout in seconds"
+    value: 60
+
+  - name: "ibm_qradar_api_max_retries"
+    description: "Number of times to retry API requests upon failure"
+    value: 3
+
+  - name: "ibm_qradar_default_limit"
+    description: "Default limit for API response pagination"
+    value: 100
+
+  - name: "additional considerations"
+    description: |
+      Additional considerations for the generation of specifically the IBM QRadar connector 
+      with regards to the connector framework as provided - please keep these strongly in mind
+    value: [
+      "IBMQRadarConnectorConfig should derive from ConnectorConfig, this is not a connector of type AlertProviderConnectorConfig config",
+      "authentication should not be a tool, tools should handle authentication when used (so should not be explicitly exposed)",
+      "utilize the query target options to determine which data sources are valid for the target, and then use the target to select which sources to actually pull data from for the respective tools as shown in the unit tests",
+      "IBM QRadar APIs require proper API token authentication in SEC header or basic authentication",
+      "implement proper rate limiting and pagination handling for large datasets",
+      "handle different data types (offenses, events, flows, assets, rules) appropriately",
+      "support IBM QRadar's RESTful API architecture and response formats",
+      "handle IBM QRadar's specific response formats and error codes properly",
+      "implement proper handling of IBM QRadar's time-based queries and filters",
+      "support IBM QRadar's offense and event correlation capabilities"
+    ]
+# !IBM QRadar

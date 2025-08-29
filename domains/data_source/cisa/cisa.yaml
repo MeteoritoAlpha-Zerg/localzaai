@@ -1,0 +1,128 @@
+# CISA
+name: "cisa"
+category: "Cybersecurity"
+description: "Create an API integration with CISA to ingest cybersecurity alerts, threat intelligence, and vulnerability data"
+
+specs:
+  - description: |
+      The CISA Connector is able to authenticate with CISA APIs per its implementation in the code 
+      environment only
+    preconditions: |
+      This spec has no strict preconditions as CISA APIs are publicly accessible
+    postconditions: |
+      The CISA connector is able to authenticate properly with CISA APIs;
+      The CISA connector config is of type ConnectorConfig and not AlertProviderConnectorConfig;
+
+  - description: |
+      CISA Connector is able to list available data sources per user of get_query_target_options
+    preconditions: |
+      A valid connection to CISA APIs
+    postconditions: |
+      Connector successfully enumerates available data sources (KEV, alerts, advisories) to populate 
+      the target options of the CISATarget;
+
+  - description: |
+      CISA Connector is able to retrieve Known Exploited Vulnerabilities (KEV) data
+    preconditions: |
+      A valid connection to CISA APIs
+    postconditions: |
+      Per the configuration as contained in CISATarget as provided to CISAConnectorTools, it is possible
+      to get a list of KEV entries along with their respective details including CVE IDs, vendor/product info,
+      vulnerability names, dates, and required actions;
+      Ensure that the respective get_cisa_kev function in the CISAConnectorTools is not hardcoding
+      any return values;
+
+  - description: |
+      CISA Connector is able to retrieve cybersecurity alerts and advisories
+    preconditions: |
+      A valid connection to CISA APIs
+    postconditions: |
+      Connector successfully retrieves CISA alerts and advisories with details including
+      alert IDs, titles, descriptions, severity levels, and publication dates
+
+tests:
+  - description: |
+      This checks to see that the connector is able to return a listing of tools
+    preconditions: |
+      A data connector implementation per the provided interfaces
+    postconditions: |
+      The data connector is able to provide a list of supported tools and interfaces
+    function_to_run: !python/file 1-test_tools_interface.py
+
+  - description: |
+      This checks that the connector can successfully verify its connection
+    preconditions: |
+      A connector implementation adhering to ConnectorInterface is available as 'connector'
+    postconditions: |
+      The check_connection method returns True if the connector is correctly configured
+    function_to_run: !python/file 2-test_connector_check_connection.py
+
+  - description: |
+      get_query_target_options enumerates CISA data sources
+    preconditions: |
+      Access to CISA APIs
+    postconditions: |
+      Possible to retrieve the list of CISA data sources using get_query_target_options
+      and to then use this to set the options in a given CISAConnectorConfig which is 
+      subclassed from ConnectorConfig - adheres to example API response in query_target_options.py;
+      These must be real data sources, and not simulated;
+    function_to_run: !python/file 3-test_query_target_options.py
+
+  - description: |
+      Retrieve CISA KEV (Known Exploited Vulnerabilities) data
+    preconditions: |
+      Access to CISA APIs
+    postconditions: |
+      Possible to retrieve the list of KEV entries by way of connector tools;
+      This list includes details of the vulnerabilities to be listed in results; 
+      These must be real KEV data, and not simulated;
+    function_to_run: !python/file 4-test_get_kev_data.py
+
+  - description: |
+      Retrieve CISA alerts and advisories
+    preconditions: |
+      Access to CISA APIs
+    postconditions: |
+      Possible to retrieve a set of alerts and advisories from CISA;
+      This list includes alert details, severity, and publication information; 
+      These must be real alerts, and not simulated;
+    function_to_run: !python/file 5-test_get_alerts.py
+
+connector_references: 
+  - description: "CISA logo"
+    file_path: "assets/cisa.png"
+    environment_path: "connectors/cisa/cisa.png"
+    format: "png"
+    required: true
+    read_only: true
+
+user_references: []
+
+configs:
+  - name: "cisa_base_url"
+    description: "The base URL for CISA APIs, note this should be included as base_url in CISAConnectorConfig"
+    value: "https://www.cisa.gov/sites/default/files/feeds"
+
+  - name: "cisa_api_request_timeout"
+    description: "Request timeout in seconds"
+    value: 30
+
+  - name: "cisa_api_max_retries"
+    description: "Number of times to retry API requests upon failure"
+    value: 3
+
+  - name: "cisa_kev_url"
+    description: "URL for CISA KEV (Known Exploited Vulnerabilities) JSON feed"
+    value: "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
+
+  - name: "additional considerations"
+    description: |
+      Additional considerations for the generation of specifically the CISA connector 
+      with regards to the connector framework as provided - please keep these strongly in mind
+    value: [
+      "CISAConnectorConfig should derive from ConnectorConfig, this is not a connector of type AlertProviderConnectorConfig config",
+      "authentication is not required for CISA public APIs, but tools should handle any necessary headers/parameters",
+      "utilize the query target options to determine which data sources are available for the target, and then use the target to select which data sources to actually pull data from for the respective tools as shown in the unit tests",
+      "CISA APIs are public and do not require API keys, but implement proper rate limiting and error handling"
+    ]
+# !CISA

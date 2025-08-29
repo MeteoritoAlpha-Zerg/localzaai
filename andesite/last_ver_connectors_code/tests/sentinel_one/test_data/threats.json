@@ -1,0 +1,206 @@
+{
+    "data": [
+        {
+            "agentDetectionInfo": {
+                "accountId": "test",
+                "accountName": "test",
+                "agentDetectionState": "test",
+                "agentDomain": "test",
+                "agentIpV4": "test",
+                "agentIpV6": "test",
+                "agentLastLoggedInUpn": null,
+                "agentLastLoggedInUserMail": null,
+                "agentLastLoggedInUserName": "test",
+                "agentMitigationMode": "test",
+                "agentOsName": "test",
+                "agentOsRevision": "test",
+                "agentRegisteredAt": "test",
+                "agentUuid": "test",
+                "agentVersion": "test",
+                "assetVersion": "test",
+                "cloudProviders": {},
+                "externalIp": "test",
+                "groupId": "test",
+                "groupName": "test",
+                "siteId": "test",
+                "siteName": "test"
+            },
+            "agentRealtimeInfo": {
+                "accountId": "test",
+                "accountName": "test",
+                "activeThreats": 0,
+                "agentComputerName": "test",
+                "agentDecommissionedAt": true,
+                "agentDomain": "test",
+                "agentId": "test",
+                "agentInfected": false,
+                "agentIsActive": false,
+                "agentIsDecommissioned": true,
+                "agentMachineType": "test",
+                "agentMitigationMode": "test",
+                "agentNetworkStatus": "test",
+                "agentOsName": "test",
+                "agentOsRevision": "test",
+                "agentOsType": "test",
+                "agentUuid": "test",
+                "agentVersion": "test",
+                "groupId": "test",
+                "groupName": "test",
+                "networkInterfaces": [
+                    {
+                        "id": "test",
+                        "inet": [
+                            "10.0.0.0"
+                        ],
+                        "inet6": [],
+                        "name": "test",
+                        "physical": "test"
+                    }
+                ],
+                "operationalState": "test",
+                "rebootRequired": false,
+                "scanAbortedAt": null,
+                "scanFinishedAt": "test",
+                "scanStartedAt": "test",
+                "scanStatus": "test",
+                "siteId": "test",
+                "siteName": "test",
+                "storageName": null,
+                "storageType": null,
+                "userActionsNeeded": []
+            },
+            "containerInfo": {
+                "id": null,
+                "image": null,
+                "isContainerQuarantine": null,
+                "labels": null,
+                "name": null
+            },
+            "ecsInfo": {
+                "clusterName": null,
+                "serviceArn": null,
+                "serviceName": null,
+                "taskArn": null,
+                "taskAvailabilityZone": null,
+                "taskDefinitionArn": null,
+                "taskDefinitionFamily": null,
+                "taskDefinitionRevision": null,
+                "type": null,
+                "version": null
+            },
+            "id": "test",
+            "indicators": [],
+            "kubernetesInfo": {
+                "cluster": null,
+                "controllerKind": null,
+                "controllerLabels": null,
+                "controllerName": null,
+                "isContainerQuarantine": null,
+                "namespace": null,
+                "namespaceLabels": null,
+                "node": null,
+                "nodeLabels": null,
+                "pod": null,
+                "podLabels": null
+            },
+            "mitigationStatus": [
+                {
+                    "action": "test",
+                    "actionsCounters": {
+                        "failed": 0,
+                        "notFound": 0,
+                        "pendingReboot": 0,
+                        "success": 1,
+                        "total": 1
+                    },
+                    "agentSupportsReport": true,
+                    "groupNotFound": false,
+                    "lastUpdate": "test",
+                    "latestReport": "test",
+                    "mitigationEndedAt": "test",
+                    "mitigationStartedAt": "test",
+                    "reportId": "test",
+                    "status": "test"
+                },
+                {
+                    "action": "test",
+                    "actionsCounters": null,
+                    "agentSupportsReport": true,
+                    "groupNotFound": false,
+                    "lastUpdate": "test",
+                    "latestReport": null,
+                    "mitigationEndedAt": "test",
+                    "mitigationStartedAt": "test",
+                    "reportId": "test",
+                    "status": "test"
+                }
+            ],
+            "threatInfo": {
+                "analystVerdict": "test",
+                "analystVerdictDescription": "test",
+                "automaticallyResolved": false,
+                "browserType": null,
+                "certificateId": "test",
+                "classification": "test",
+                "classificationSource": "test",
+                "cloudFilesHashVerdict": "test",
+                "collectionId": "test",
+                "confidenceLevel": "test",
+                "createdAt": "test",
+                "detectionEngines": [
+                    {
+                        "key": "test",
+                        "title": "test"
+                    }
+                ],
+                "detectionType": "test",
+                "engines": [
+                    "SentinelOne Cloud"
+                ],
+                "externalTicketExists": false,
+                "externalTicketId": null,
+                "failedActions": false,
+                "fileExtension": "test",
+                "fileExtensionType": "test",
+                "filePath": "test",
+                "fileSize": 915776,
+                "fileVerificationType": "test",
+                "identifiedAt": "test",
+                "incidentStatus": "test",
+                "incidentStatusDescription": "test",
+                "initiatedBy": "test",
+                "initiatedByDescription": "test",
+                "initiatingUserId": null,
+                "initiatingUsername": null,
+                "isFileless": false,
+                "isValidCertificate": true,
+                "macroModules": null,
+                "maliciousProcessArguments": null,
+                "md5": null,
+                "mitigatedPreemptively": false,
+                "mitigationStatus": "test",
+                "mitigationStatusDescription": "test",
+                "originatorProcess": "test",
+                "pendingActions": false,
+                "processUser": "test",
+                "publisherName": "test",
+                "reachedEventsLimit": false,
+                "rebootRequired": false,
+                "rootProcessUpn": null,
+                "sha1": "test",
+                "sha256": null,
+                "storyline": "test",
+                "threatId": "test",
+                "threatName": "test",
+                "updatedAt": "test"
+            },
+            "whiteningOptions": [
+                "hash"
+            ]
+        }
+    ],
+    "pagination": {
+        "nextCursor": null,
+        "totalItems": 1
+    }
+}

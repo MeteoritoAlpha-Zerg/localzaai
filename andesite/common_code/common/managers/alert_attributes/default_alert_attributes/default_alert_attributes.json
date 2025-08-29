@@ -1,0 +1,96 @@
+[
+    {
+        "attribute_name": "commandLine",
+        "context_weights": {
+            "grouping": 1.0
+        },
+        "mappings": {
+            "splunk": [
+                "CommandLine"
+            ],
+            "elastic": ["winlog.event_data.CommandLine"]
+        }
+    },
+    {
+        "attribute_name": "computer",
+        "context_weights": {
+            "grouping": 2.0
+        },
+        "mappings": {
+            "splunk": [
+                "Computer"
+            ],
+            "elastic":
+            [
+                "winlog.computer_name"
+            ]
+        }
+    },
+    {
+        "attribute_name": "currentDirectory",
+        "context_weights": {
+            "grouping": 1.0
+        },
+        "mappings": {
+            "splunk": [
+                "CurrentDirectory"
+            ]
+        }
+    },
+    {
+        "attribute_name": "parentUser",
+        "context_weights": {
+            "grouping": 1.0
+        },
+        "mappings": {
+            "splunk": [
+                "ParentUser"
+            ]
+        }
+    },
+    {
+        "attribute_name": "parentCommandLine",
+        "context_weights": {
+            "grouping": 1.0
+        },
+        "mappings": {
+            "splunk": [
+                "ParentCommandLine"
+            ],
+            "elastic": ["winlog.event_data.ParentCommandLine"]
+        }
+    },
+    {
+        "attribute_name": "parentImage",
+        "context_weights": {
+            "grouping": 1.0
+        },
+        "mappings": {
+            "splunk": [
+                "ParentImage"
+            ]
+        }
+    },
+    {
+        "attribute_name": "parentProcessId",
+        "context_weights": {
+            "grouping": 1.0
+        },
+        "mappings": {
+            "splunk": [
+                "ParentProcessId"
+            ]
+        }
+    },
+    {
+        "attribute_name": "originalHost",
+        "context_weights": {
+            "grouping": 1.0
+        },
+        "mappings": {
+            "splunk": [
+                "orig_host"
+            ]
+        }
+    }
+]

@@ -1,0 +1,6 @@
+# DCAIG 3rd Party Analytics Connectors
+
+- !include sentry/sentry.yaml
+- !include security_scorecard/security_scorecard.yaml
+- !include bitsight/bitsight.yaml
+- !include upguard/upguard.yaml

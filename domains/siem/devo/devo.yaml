@@ -1,0 +1,171 @@
+# Devo
+name: "devo"
+category: "SIEM & Security Analytics"
+description: "Create an API integration with Devo for security data ingestion and analysis"
+
+specs:
+  - description: |
+      The Devo Connector is able to authenticate with Devo per its implementation in the code 
+      environment only
+    preconditions: |
+      This spec has no strict preconditions
+    postconditions: |
+      The Devo connector is able to authenticate properly with a Devo instance;
+      The Devo connector config is of type ConnectorConfig and not AlertProviderConnectorConfig;
+
+  - description: |
+      Devo Connector is able to list Devo domains and data tables per user of get_query_target_options
+    preconditions: |
+      A valid authenticated session with Devo
+    postconditions: |
+      Connector successfully enumerates domains and data tables to populate the target options of the DevoTarget;
+
+  - description: |
+      Devo Connector is able to retrieve domain and data table information
+    preconditions: |
+      A valid authenticated session with Devo
+    postconditions: |
+      Per the configuration as contained in DevoTarget as provided to DevoConnectorTools, it is possible
+      to get a list of domains and data tables along with their respective metadata and other relevant details
+      as may be relevant for security data analysis and SIEM operations;
+      Ensure that the respective get_devo_domains function in the DevoConnectorTools is not hardcoding
+      any return values;
+
+  - description: |
+      Devo Connector is able to execute queries and retrieve security data from selected domains and tables
+    preconditions: |
+      A valid authenticated session with Devo
+    postconditions: |
+      Connector successfully executes Devo queries for the selected domains and tables provided as params
+      to the query tools, supporting security data analysis and SIEM investigations
+
+  - description: |
+      Devo Connector is able to retrieve alerts and security events from Devo platform
+    preconditions: |
+      A valid authenticated session with Devo
+    postconditions: |
+      Connector successfully retrieves alerts and security events from Devo for security monitoring and incident response
+
+tests:
+  - description: |
+      This checks to see that the connector is able to return a listing of tools
+    preconditions: |
+      A data connector implementation per the provided interfaces
+    postconditions: |
+      The data connector is able to provide a list of supported tools and interfaces
+    function_to_run: !python/file 1-test_tools_interface.py
+
+  - description: |
+      This checks that the connector can successfully verify its connection
+    preconditions: |
+      A connector implementation adhering to ConnectorInterface is available as 'connector'
+    postconditions: |
+      The check_connection method returns True if the connector is correctly configured
+    function_to_run: !python/file 2-test_connector_check_connection.py
+
+  - description: |
+      get_query_target_options enumerates Devo domains and data tables
+    preconditions: |
+      An existing Devo instance with valid API credentials
+    postconditions: |
+      Possible to retrieve the list of Devo domains and data tables using get_query_target_options
+      and to then use this to set the options in a given DevoConnectorConfig which is 
+      subclassed from ConnectorConfig - adheres to example API response in query_target_options.py;
+      These must be real domains and data tables, and not simulated;
+    function_to_run: !python/file 3-test_query_target_options.py
+
+  - description: |
+      List Devo domains and data tables for selected targets
+    preconditions: |
+      An existing Devo instance with valid API credentials
+    postconditions: |
+      Possible to retrieve the list of Devo domains and data tables by way of connector tools;
+      This list includes details of the domains and data tables including metadata and schemas; 
+      These must be real domains and data tables, and not simulated;
+    function_to_run: !python/file 4-test_list_domains.py
+
+  - description: |
+      Execute Devo queries and retrieve security data from selected domains and tables
+    preconditions: |
+      An existing Devo instance with valid API credentials
+    postconditions: |
+      Possible to execute Devo queries for the selected domains and tables as passed as params to the connector tools;
+      This list includes security data and query results for analysis; 
+      These must be real query results, and not simulated;
+    function_to_run: !python/file 5-test_query_execution.py
+
+  - description: |
+      Retrieve alerts and security events from Devo platform
+    preconditions: |
+      An existing Devo instance with valid API credentials
+    postconditions: |
+      Possible to retrieve alerts and security events from Devo platform;
+      This includes security alerts and event data for monitoring and incident response; 
+      These must be real alerts and events, and not simulated;
+    function_to_run: !python/file 6-test_alerts_events.py
+
+connector_references: 
+  - description: "Devo logo"
+    file_path: "assets/devo.png"
+    environment_path: "connectors/devo/devo.png"
+    format: "png"
+    required: true
+    read_only: true
+
+user_references: []
+
+configs:
+  - name: "devo_url"
+    description: "The base URL of the Devo instance (e.g., https://api-us.devo.com), note this should be included as url in DevoConnectorConfig"
+    value: !env/var 
+
+  - name: "devo_api_key"
+    description: "API key for authenticating with Devo API, note this should be included as api_key in DevoConnectorConfig"
+    value: !env/var 
+
+  - name: "devo_api_secret"
+    description: "API secret for authenticating with Devo API, note this should be included as api_secret in DevoConnectorConfig"
+    value: !env/var
+
+  - name: "devo_oauth_token"
+    description: "OAuth token for authenticating with Devo (alternative to API key/secret), note this should be included as oauth_token in DevoConnectorConfig"
+    value: !env/var
+
+  - name: "devo_domain"
+    description: "Default domain for Devo queries, note this should be included as default_domain in DevoConnectorConfig"
+    value: !env/var
+
+  - name: "devo_api_request_timeout"
+    description: "Request timeout in seconds"
+    value: 120
+
+  - name: "devo_api_max_retries"
+    description: "Number of times to retry API requests upon failure"
+    value: 3
+
+  - name: "devo_verify_ssl"
+    description: "Whether to verify SSL certificates"
+    value: true
+
+  - name: "devo_query_timeout"
+    description: "Timeout for Devo query execution in seconds"
+    value: 600
+
+  - name: "devo_max_results"
+    description: "Maximum number of results to return per query"
+    value: 10000
+
+  - name: "additional considerations"
+    description: |
+      Additional considerations for the generation of specifically the Devo connector 
+      with regards to the connector framework as provided - please keep these strongly in mind
+    value: [
+      "DevoConnectorConfig should derive from ConnectorConfig, this is not a connector of type AlertProviderConnectorConfig config",
+      "authentication should not be a tool, tools should handle authentication when used (so should not be explicitly exposed)",
+      "utilize the query target options to determine which domains and data tables are valid for the target, and then use the target to select which domains and data tables to actually pull data from for the respective tools as shown in the unit tests",
+      "support both API key/secret and OAuth token authentication methods",
+      "handle query timeout and result limits appropriately for large SIEM datasets",
+      "support Devo's LINQ-based query language for data retrieval",
+      "integrate with Devo's alerting and correlation engine capabilities"
+    ]
+# !Devo

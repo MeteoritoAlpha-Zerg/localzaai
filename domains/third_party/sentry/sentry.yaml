@@ -1,0 +1,173 @@
+# Sentry
+name: "sentry"
+category: "Application Monitoring"
+description: "Create an API integration with Sentry.io to track errors, performance issues, and event data"
+
+specs:
+  - description: |
+      The Sentry Connector is able to authenticate with Sentry API per its implementation in the code 
+      environment only
+    preconditions: |
+      This spec has no strict preconditions
+    postconditions: |
+      The Sentry connector is able to authenticate properly with the Sentry API;
+      The Sentry connector config is of type ConnectorConfig and not AlertProviderConnectorConfig;
+
+  - description: |
+      Sentry Connector is able to list available organizations and projects per user of get_query_target_options
+    preconditions: |
+      A valid authenticated session with Sentry API
+    postconditions: |
+      Connector successfully enumerates organizations and projects to populate the target options of the SentryTarget;
+
+  - description: |
+      Sentry Connector is able to list project information and team data
+    preconditions: |
+      A valid authenticated session with Sentry API
+    postconditions: |
+      Per the configuration as contained in SentryTarget as provided to SentryConnectorTools, it is possible
+      to get a list of projects and teams along with their respective metadata and configuration
+      as may be relevant for application monitoring;
+      Ensure that the respective get_sentry_projects function in the SentryConnectorTools is not hardcoding
+      any return values;
+
+  - description: |
+      Sentry Connector is able to retrieve error events and performance data from selected projects
+    preconditions: |
+      A valid authenticated session with Sentry API
+    postconditions: |
+      Connector successfully retrieves error events, performance issues, and transaction data
+      from the selected projects provided as parameters to the query tool
+
+  - description: |
+      Sentry Connector is able to analyze event data and performance metrics
+    preconditions: |
+      A valid authenticated session with Sentry API
+    postconditions: |
+      Connector successfully retrieves and analyzes event data, performance metrics,
+      and release tracking for comprehensive application monitoring
+
+tests:
+  - description: |
+      This checks to see that the connector is able to return a listing of tools
+    preconditions: |
+      A data connector implementation per the provided interfaces
+    postconditions: |
+      The data connector is able to provide a list of supported tools and interfaces
+    function_to_run: !python/file 1-test_tools_interface.py
+
+  - description: |
+      This checks that the connector can successfully verify its connection
+    preconditions: |
+      A connector implementation adhering to ConnectorInterface is available as 'connector'
+    postconditions: |
+      The check_connection method returns True if the connector is correctly configured
+    function_to_run: !python/file 2-test_connector_check_connection.py
+
+  - description: |
+      get_query_target_options enumerates Sentry organizations and projects
+    preconditions: |
+      An existing Sentry API token and organization access
+    postconditions: |
+      Possible to retrieve the list of Sentry organizations and projects using get_query_target_options
+      and to then use this to set the options in a given SentryConnectorConfig which is 
+      subclassed from ConnectorConfig - adheres to example API response in query_target_options.py;
+      These must be real organizations and projects, and not simulated;
+    function_to_run: !python/file 3-test_query_target_options.py
+
+  - description: |
+      List Sentry projects for selected targets
+    preconditions: |
+      An existing Sentry API token and organization access
+    postconditions: |
+      Possible to retrieve the list of Sentry projects by way of connector tools;
+      This list includes metadata and configuration for application monitoring; 
+      These must be real projects, and not simulated;
+    function_to_run: !python/file 4-test_list_projects.py
+
+  - description: |
+      Retrieve error events from selected Sentry projects
+    preconditions: |
+      An existing Sentry API token and organization access with event data
+    postconditions: |
+      Possible to retrieve error events and performance issues from selected projects;
+      This query returns actual event data from the target projects; 
+      These must be real error events, and not simulated;
+    function_to_run: !python/file 5-test_error_events.py
+
+  - description: |
+      Analyze performance metrics and event data
+    preconditions: |
+      An existing Sentry API token and organization access with performance data
+    postconditions: |
+      Possible to retrieve and analyze performance metrics and event data;
+      The analysis should support comprehensive application monitoring use cases;
+      Results must demonstrate actual performance data processing capabilities;
+    function_to_run: !python/file 6-test_performance_metrics.py
+
+connector_references: 
+  - description: "Sentry logo"
+    file_path: "assets/sentry.svg"
+    environment_path: "connectors/sentry/sentry.svg"
+    format: "svg"
+    required: true
+    read_only: true
+
+user_references: []
+
+configs:
+  - name: "sentry_api_token"
+    description: "API Token for authenticating with Sentry, note this should be included as api_token in SentryConnectorConfig"
+    value: !env/var 
+
+  - name: "sentry_organization_slug"
+    description: "Organization slug for Sentry, note this should be included as organization_slug in SentryConnectorConfig"
+    value: !env/var 
+
+  - name: "sentry_base_url"
+    description: "Base URL for Sentry API (default: https://sentry.io/api/0/)"
+    value: "https://sentry.io/api/0/"
+
+  - name: "sentry_verify_ssl"
+    description: "Whether to verify SSL certificates"
+    value: true
+
+  - name: "sentry_api_request_timeout"
+    description: "Request timeout in seconds"
+    value: 30
+
+  - name: "sentry_api_max_retries"
+    description: "Number of times to retry API requests upon failure"
+    value: 3
+
+  - name: "sentry_max_events_per_request"
+    description: "Maximum number of events to retrieve per request"
+    value: 100
+
+  - name: "sentry_event_level_filter"
+    description: "Filter events by level (debug, info, warning, error, fatal)"
+    value: "error"
+
+  - name: "sentry_time_window_hours"
+    description: "Default time window for event queries in hours"
+    value: 24
+
+  - name: "sentry_include_resolved"
+    description: "Whether to include resolved issues in queries"
+    value: false
+
+  - name: "additional considerations"
+    description: |
+      Additional considerations for the generation of specifically the Sentry connector 
+      with regards to the connector framework as provided - please keep these strongly in mind
+    value: [
+      "SentryConnectorConfig should derive from ConnectorConfig, this is not a connector of type AlertProviderConnectorConfig config",
+      "authentication should not be a tool, tools should handle authentication when used (so should not be explicitly exposed)",
+      "utilize the query target options to determine which organizations and projects are valid for the target, and then use the target to select which data sources to actually pull data from for the respective tools as shown in the unit tests",
+      "focus on error tracking, performance monitoring, and event data analysis",
+      "support filtering by event level, issue status, and release versions for targeted analysis",
+      "handle both real-time error monitoring and historical event data analysis",
+      "include issue grouping, release tracking, and performance transaction analysis for comprehensive application monitoring",
+      "support organization-based access control and project isolation"
+    ]
+# !Sentry

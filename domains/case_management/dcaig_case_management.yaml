@@ -1,0 +1,26 @@
+# DCAIG Case Management Connectors
+
+- !include jira/jira.yaml
+- !include confluence/confluence.yaml
+- !include github/github.yaml
+- !include servicenow/servicenow.yaml
+- !include sharepoint/sharepoint.yaml
+- !include salesforce/salesforce.yaml
+- !include zendesk/zendesk.yaml
+- !include asana/asana.yaml
+- !include sysaid/sysaid.yaml     
+- !include trello/trello.yaml
+
+
+
+
+
+
+
+
+
+
+
+
+
+

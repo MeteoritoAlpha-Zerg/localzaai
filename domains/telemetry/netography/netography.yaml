@@ -1,0 +1,173 @@
+# Netography
+name: "netography"
+category: "Network Security"
+description: "Create an API integration with Netography to ingest, analyze, and process network security telemetry, anomaly detection data, and real-time alerts"
+
+specs:
+  - description: |
+      The Netography Connector is able to authenticate with Netography API per its implementation in the code 
+      environment only
+    preconditions: |
+      This spec has no strict preconditions
+    postconditions: |
+      The Netography connector is able to authenticate properly with the Netography API;
+      The Netography connector config is of type ConnectorConfig and not AlertProviderConnectorConfig;
+
+  - description: |
+      Netography Connector is able to list available sensors and data sources per user of get_query_target_options
+    preconditions: |
+      A valid authenticated session with Netography API
+    postconditions: |
+      Connector successfully enumerates sensors and data sources to populate the target options of the NetographyTarget;
+
+  - description: |
+      Netography Connector is able to list sensor information and data sources
+    preconditions: |
+      A valid authenticated session with Netography API
+    postconditions: |
+      Per the configuration as contained in NetographyTarget as provided to NetographyConnectorTools, it is possible
+      to get a list of sensors and data sources along with their respective metadata and telemetry capabilities
+      as may be relevant for network security analysis;
+      Ensure that the respective get_netography_sensors function in the NetographyConnectorTools is not hardcoding
+      any return values;
+
+  - description: |
+      Netography Connector is able to retrieve network security alerts and anomaly detection data from selected sensors
+    preconditions: |
+      A valid authenticated session with Netography API
+    postconditions: |
+      Connector successfully retrieves network security alerts, anomaly detection results, and threat indicators
+      from the selected sensors provided as parameters to the query tool
+
+  - description: |
+      Netography Connector is able to analyze network telemetry and real-time security monitoring
+    preconditions: |
+      A valid authenticated session with Netography API
+    postconditions: |
+      Connector successfully retrieves and analyzes network telemetry data, real-time security monitoring,
+      and behavioral analytics for comprehensive network security visibility
+
+tests:
+  - description: |
+      This checks to see that the connector is able to return a listing of tools
+    preconditions: |
+      A data connector implementation per the provided interfaces
+    postconditions: |
+      The data connector is able to provide a list of supported tools and interfaces
+    function_to_run: !python/file 1-test_tools_interface.py
+
+  - description: |
+      This checks that the connector can successfully verify its connection
+    preconditions: |
+      A connector implementation adhering to ConnectorInterface is available as 'connector'
+    postconditions: |
+      The check_connection method returns True if the connector is correctly configured
+    function_to_run: !python/file 2-test_connector_check_connection.py
+
+  - description: |
+      get_query_target_options enumerates Netography sensors and data sources
+    preconditions: |
+      An existing Netography API token and platform access
+    postconditions: |
+      Possible to retrieve the list of Netography sensors and data sources using get_query_target_options
+      and to then use this to set the options in a given NetographyConnectorConfig which is 
+      subclassed from ConnectorConfig - adheres to example API response in query_target_options.py;
+      These must be real sensors and data sources, and not simulated;
+    function_to_run: !python/file 3-test_query_target_options.py
+
+  - description: |
+      List Netography sensors for selected targets
+    preconditions: |
+      An existing Netography API token and platform access
+    postconditions: |
+      Possible to retrieve the list of Netography sensors by way of connector tools;
+      This list includes metadata and telemetry capabilities for network security analysis; 
+      These must be real sensors, and not simulated;
+    function_to_run: !python/file 4-test_list_sensors.py
+
+  - description: |
+      Retrieve network security alerts from selected Netography sensors
+    preconditions: |
+      An existing Netography API token and platform access with alert data
+    postconditions: |
+      Possible to retrieve network security alerts and anomaly detection data from selected sensors;
+      This query returns actual security alerts from the target sensors; 
+      These must be real security alerts, and not simulated;
+    function_to_run: !python/file 5-test_security_alerts.py
+
+  - description: |
+      Analyze network telemetry and real-time monitoring data
+    preconditions: |
+      An existing Netography API token and platform access with telemetry data
+    postconditions: |
+      Possible to retrieve and analyze network telemetry data and real-time monitoring;
+      The analysis should support comprehensive network security visibility use cases;
+      Results must demonstrate actual network telemetry processing capabilities;
+    function_to_run: !python/file 6-test_network_telemetry.py
+
+connector_references: 
+  - description: "Netography logo"
+    file_path: "assets/netography.webp"
+    environment_path: "connectors/netography/netography.webp"
+    format: "webp"
+    required: true
+    read_only: true
+
+user_references: []
+
+configs:
+  - name: "netography_api_token"
+    description: "API Token for authenticating with Netography, note this should be included as api_token in NetographyConnectorConfig"
+    value: !env/var 
+
+  - name: "netography_base_url"
+    description: "Base URL for Netography platform, note this should be included as base_url in NetographyConnectorConfig"
+    value: !env/var 
+
+  - name: "netography_tenant_id"
+    description: "Tenant ID for Netography multi-tenant environment, note this should be included as tenant_id in NetographyConnectorConfig"
+    value: !env/var 
+
+  - name: "netography_verify_ssl"
+    description: "Whether to verify SSL certificates"
+    value: true
+
+  - name: "netography_api_request_timeout"
+    description: "Request timeout in seconds"
+    value: 60
+
+  - name: "netography_api_max_retries"
+    description: "Number of times to retry API requests upon failure"
+    value: 3
+
+  - name: "netography_max_alerts_per_request"
+    description: "Maximum number of alerts to retrieve per request"
+    value: 1000
+
+  - name: "netography_alert_severity_filter"
+    description: "Filter alerts by severity (low, medium, high, critical)"
+    value: "all"
+
+  - name: "netography_anomaly_confidence_threshold"
+    description: "Minimum confidence level for anomaly detection (0-100)"
+    value: 70
+
+  - name: "netography_time_window_hours"
+    description: "Default time window for telemetry queries in hours"
+    value: 24
+
+  - name: "additional considerations"
+    description: |
+      Additional considerations for the generation of specifically the Netography connector 
+      with regards to the connector framework as provided - please keep these strongly in mind
+    value: [
+      "NetographyConnectorConfig should derive from ConnectorConfig, this is not a connector of type AlertProviderConnectorConfig config",
+      "authentication should not be a tool, tools should handle authentication when used (so should not be explicitly exposed)",
+      "utilize the query target options to determine which sensors and data sources are valid for the target, and then use the target to select which data sources to actually pull data from for the respective tools as shown in the unit tests",
+      "focus on network security telemetry, anomaly detection, and real-time alert processing",
+      "support filtering by alert severity, anomaly confidence levels, and sensor types for targeted analysis",
+      "handle both real-time monitoring and historical network security data analysis",
+      "include behavioral analytics, threat detection, and network visibility for comprehensive security monitoring",
+      "support multi-tenant environments with proper data isolation and access controls"
+    ]
+# !Netography

@@ -1,0 +1,16 @@
+# DCAIG Threat Intelligence Connectors
+
+- !include proofpoint/proofpoint.yaml
+- !include guardduty/guardduty.yaml
+- !include threatq/threatq.yaml
+- !include flashpoint/flashpoint.yaml
+- !include mandiant/mandiant.yaml
+- !include cymru/cymru.yaml
+- !include greynoise/greynoise.yaml
+
+
+
+
+
+
+

@@ -1,0 +1,5 @@
+# DCAIG Risk Management / GRC (Governance, Risk, Compliance) Connectors
+
+- !include archer/archer.yaml
+- !include emass/emass.yaml
+- !include hubble/hubble.yaml

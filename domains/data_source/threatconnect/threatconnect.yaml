@@ -1,0 +1,158 @@
+# ThreatConnect
+name: "threatconnect"
+category: "Threat Intelligence"
+description: "Create an API integration with ThreatConnect to ingest, analyze, and process threat intelligence, indicators, and security events"
+
+specs:
+  - description: |
+      The ThreatConnect Connector is able to authenticate with ThreatConnect per its implementation in the code 
+      environment only
+    preconditions: |
+      This spec has no strict preconditions
+    postconditions: |
+      The ThreatConnect connector is able to authenticate properly with a ThreatConnect instance;
+      The ThreatConnect connector config is of type ConnectorConfig and not AlertProviderConnectorConfig;
+
+  - description: |
+      ThreatConnect Connector is able to list ThreatConnect sources and groups per user of get_query_target_options
+    preconditions: |
+      A valid authenticated session with ThreatConnect
+    postconditions: |
+      Connector successfully enumerates sources and groups to populate the target options of the ThreatConnectTarget;
+
+  - description: |
+      ThreatConnect Connector is able to retrieve source and group information
+    preconditions: |
+      A valid authenticated session with ThreatConnect
+    postconditions: |
+      Per the configuration as contained in ThreatConnectTarget as provided to ThreatConnectConnectorTools, it is possible
+      to get a list of sources and groups along with their respective metadata and other relevant details
+      as may be relevant for threat intelligence analysis;
+      Ensure that the respective get_threatconnect_sources function in the ThreatConnectConnectorTools is not hardcoding
+      any return values;
+
+  - description: |
+      ThreatConnect Connector is able to retrieve indicators from selected sources and groups
+    preconditions: |
+      A valid authenticated session with ThreatConnect
+    postconditions: |
+      Connector successfully retrieves indicators for the selected sources and groups provided as params
+      to the indicators tool, supporting threat intelligence analysis and IOC management
+
+  - description: |
+      ThreatConnect Connector is able to retrieve threats and incidents from selected sources
+    preconditions: |
+      A valid authenticated session with ThreatConnect
+    postconditions: |
+      Connector successfully retrieves threats and incidents for threat analysis and security event processing
+
+tests:
+  - description: |
+      This checks to see that the connector is able to return a listing of tools
+    preconditions: |
+      A data connector implementation per the provided interfaces
+    postconditions: |
+      The data connector is able to provide a list of supported tools and interfaces
+    function_to_run: !python/file 1-test_tools_interface.py
+
+  - description: |
+      This checks that the connector can successfully verify its connection
+    preconditions: |
+      A connector implementation adhering to ConnectorInterface is available as 'connector'
+    postconditions: |
+      The check_connection method returns True if the connector is correctly configured
+    function_to_run: !python/file 2-test_connector_check_connection.py
+
+  - description: |
+      get_query_target_options enumerates ThreatConnect sources and groups
+    preconditions: |
+      An existing ThreatConnect instance with valid API credentials
+    postconditions: |
+      Possible to retrieve the list of ThreatConnect sources and groups using get_query_target_options
+      and to then use this to set the options in a given ThreatConnectConnectorConfig which is 
+      subclassed from ConnectorConfig - adheres to example API response in query_target_options.py;
+      These must be real sources and groups, and not simulated;
+    function_to_run: !python/file 3-test_query_target_options.py
+
+  - description: |
+      List ThreatConnect sources and groups for selected targets
+    preconditions: |
+      An existing ThreatConnect instance with valid API credentials
+    postconditions: |
+      Possible to retrieve the list of ThreatConnect sources and groups by way of connector tools;
+      This list includes details of the sources and groups including metadata and permissions; 
+      These must be real sources and groups, and not simulated;
+    function_to_run: !python/file 4-test_list_sources.py
+
+  - description: |
+      Retrieve indicators from selected ThreatConnect sources and groups
+    preconditions: |
+      An existing ThreatConnect instance with valid API credentials
+    postconditions: |
+      Possible to retrieve indicators from the selected ThreatConnect sources and groups as passed as params to the connector tools;
+      This list only includes indicators from the target sources and groups to be listed in results; 
+      These must be real indicators, and not simulated;
+    function_to_run: !python/file 5-test_indicator_retrieval.py
+
+  - description: |
+      Retrieve threats and incidents from selected ThreatConnect sources
+    preconditions: |
+      An existing ThreatConnect instance with valid API credentials
+    postconditions: |
+      Possible to retrieve threats and incidents from the selected ThreatConnect sources as passed as params to the connector tools;
+      This list includes threat data and incident information for security analysis; 
+      These must be real threats and incidents, and not simulated;
+    function_to_run: !python/file 6-test_threat_retrieval.py
+
+connector_references: 
+  - description: "ThreatConnect logo"
+    file_path: "assets/threatconnect.png"
+    environment_path: "connectors/threatconnect/threatconnect.png"
+    format: "png"
+    required: true
+    read_only: true
+
+user_references: []
+
+configs:
+  - name: "threatconnect_url"
+    description: "The base URL of the ThreatConnect instance, note this should be included as url in ThreatConnectConnectorConfig"
+    value: !env/var 
+
+  - name: "threatconnect_access_id"
+    description: "Access ID for authenticating with ThreatConnect API, note this should be included as access_id in ThreatConnectConnectorConfig"
+    value: !env/var 
+
+  - name: "threatconnect_secret_key"
+    description: "Secret key for authenticating with ThreatConnect API, note this should be included as secret_key in ThreatConnectConnectorConfig"
+    value: !env/var
+
+  - name: "threatconnect_default_org"
+    description: "Default organization for ThreatConnect API calls, note this should be included as default_org in ThreatConnectConnectorConfig"
+    value: !env/var
+
+  - name: "threatconnect_api_request_timeout"
+    description: "Request timeout in seconds"
+    value: 30
+
+  - name: "threatconnect_api_max_retries"
+    description: "Number of times to retry API requests upon failure"
+    value: 3
+
+  - name: "threatconnect_verify_ssl"
+    description: "Whether to verify SSL certificates"
+    value: true
+
+  - name: "additional considerations"
+    description: |
+      Additional considerations for the generation of specifically the ThreatConnect connector 
+      with regards to the connector framework as provided - please keep these strongly in mind
+    value: [
+      "ThreatConnectConnectorConfig should derive from ConnectorConfig, this is not a connector of type AlertProviderConnectorConfig config",
+      "authentication should not be a tool, tools should handle authentication when used (so should not be explicitly exposed)",
+      "utilize the query target options to determine which sources and groups are valid for the target, and then use the target to select which sources and groups to actually pull data from for the respective tools as shown in the unit tests",
+      "support ThreatConnect's HMAC authentication using access_id and secret_key",
+      "handle organization context appropriately for multi-tenant ThreatConnect instances",
+      "support common indicator types: addresses, files, hosts, URLs, emails, and custom indicators"
+    ]
+# !ThreatConnect

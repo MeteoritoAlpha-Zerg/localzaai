@@ -1,0 +1,154 @@
+# MISP
+name: "misp"
+category: "Threat Intelligence"
+description: "Create an API integration with MISP to ingest, analyze, and process threat intelligence, indicators of compromise (IOCs), and security event data"
+
+specs:
+  - description: |
+      The MISP Connector is able to authenticate with MISP per its implementation in the code 
+      environment only
+    preconditions: |
+      This spec has no strict preconditions
+    postconditions: |
+      The MISP connector is able to authenticate properly with a MISP instance;
+      The MISP connector config is of type ConnectorConfig and not AlertProviderConnectorConfig;
+
+  - description: |
+      MISP Connector is able to list MISP organizations per user of get_query_target_options
+    preconditions: |
+      A valid authenticated session with MISP
+    postconditions: |
+      Connector successfully enumerates organizations to populate the target options of the MISPTarget;
+
+  - description: |
+      MISP Connector is able to list events and their metadata
+    preconditions: |
+      A valid authenticated session with MISP
+    postconditions: |
+      Per the configuration as contained in MISPTarget as provided to MISPConnectorTools, it is possible
+      to get a list of events along with their respective metadata and other relevant event details
+      as may be relevant;
+      Ensure that the respective get_misp_events function in the MISPConnectorTools is not hardcoding
+      any return values;
+
+  - description: |
+      MISP Connector is able to retrieve indicators of compromise (IOCs) from selected events
+    preconditions: |
+      A valid authenticated session with MISP
+    postconditions: |
+      Connector successfully retrieves IOCs and attributes for the selected events provided as params
+      to the get IOCs tool
+
+  - description: |
+      MISP Connector is able to search for threat intelligence based on attributes
+    preconditions: |
+      A valid authenticated session with MISP
+    postconditions: |
+      Connector successfully searches for events and attributes based on provided search criteria
+      such as attribute type, value, or tag
+
+tests:
+  - description: |
+      This checks to see that the connector is able to return a listing of tools
+    preconditions: |
+      A data connector implementation per the provided interfaces
+    postconditions: |
+      The data connector is able to provide a list of supported tools and interfaces
+    function_to_run: !python/file 1-test_tools_interface.py
+
+  - description: |
+      This checks that the connector can successfully verify its connection
+    preconditions: |
+      A connector implementation adhering to ConnectorInterface is available as 'connector'
+    postconditions: |
+      The check_connection method returns True if the connector is correctly configured
+    function_to_run: !python/file 2-test_connector_check_connection.py
+
+  - description: |
+      get_query_target_options enumerates MISP organizations
+    preconditions: |
+      An existing MISP API key and credentials
+    postconditions: |
+      Possible to retrieve the list of MISP organizations using get_query_target_options
+      and to then use this to set the options in a given MISPConnectorConfig which is 
+      subclassed from ConnectorConfig - adheres to example API response in query_target_options.py;
+      These must be real organizations, and not simulated;
+    function_to_run: !python/file 3-test_query_target_options.py
+
+  - description: |
+      List MISP events for selected organizations in target
+    preconditions: |
+      An existing MISP API key and credentials
+    postconditions: |
+      Possible to retrieve the list of MISP events by way of connector tools;
+      This list includes details of the events to be listed in results; 
+      These must be real events, and not simulated;
+    function_to_run: !python/file 4-test_list_events.py
+
+  - description: |
+      Retrieve IOCs and attributes for selected MISP events
+    preconditions: |
+      An existing MISP API key and credentials
+    postconditions: |
+      Possible to retrieve IOCs and attributes for the selected MISP events as passed as params to the connector tools;
+      This list only includes IOCs of the target events to be listed in results; 
+      These must be real IOCs, and not simulated;
+    function_to_run: !python/file 5-test_ioc_retrieval.py
+
+  - description: |
+      Search for threat intelligence based on attribute criteria
+    preconditions: |
+      An existing MISP API key and credentials
+    postconditions: |
+      Possible to search for events and attributes based on search criteria such as attribute type or value;
+      Results should contain relevant threat intelligence data matching the search criteria;
+      These must be real search results, and not simulated;
+    function_to_run: !python/file 6-test_threat_intelligence_search.py
+
+connector_references: 
+  - description: "MISP logo"
+    file_path: "assets/misp.png"
+    environment_path: "connectors/misp/misp.png"
+    format: "png"
+    required: true
+    read_only: true
+
+user_references: []
+
+configs:
+  - name: "misp_url"
+    description: "The base URL of the MISP instance, note this should be included as url in MISPConnectorConfig"
+    value: !env/var 
+
+  - name: "misp_api_key"
+    description: "API Key for authenticating with MISP, note this should be included as api_key in MISPConnectorConfig"
+    value: !env/var 
+
+  - name: "misp_verify_ssl"
+    description: "Whether to verify SSL certificates when connecting to MISP"
+    value: true
+
+  - name: "misp_api_request_timeout"
+    description: "Request timeout in seconds"
+    value: 30
+
+  - name: "misp_api_max_retries"
+    description: "Number of times to retry API requests upon failure"
+    value: 3
+
+  - name: "misp_default_page_size"
+    description: "Default number of results to return per page"
+    value: 100
+
+  - name: "additional considerations"
+    description: |
+      Additional considerations for the generation of specifically the MISP connector 
+      with regards to the connector framework as provided - please keep these strongly in mind
+    value: [
+      "MISPConnectorConfig should derive from ConnectorConfig, this is not a connector of type AlertProviderConnectorConfig config",
+      "authentication should not be a tool, tools should handle authentication when used (so should not be explicitly exposed)",
+      "utilize the query target options to determine which organizations are valid for the target, and then use the target to select which organizations to actually pull data from for the respective tools as shown in the unit tests",
+      "handle MISP-specific data structures like events, attributes, objects, and galaxies appropriately",
+      "respect MISP's API rate limits and implement proper error handling for threat intelligence data"
+    ]
+# !MISP

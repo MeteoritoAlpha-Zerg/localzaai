@@ -1,0 +1,159 @@
+# Trello
+name: "trello"
+category: "Project Management"
+description: "Create an API integration with Trello per its API specification"
+
+specs:
+  - description: |
+      The Trello Connector is able to authenticate with Trello per its implementation in the code 
+      environment only
+    preconditions: |
+      This spec has no strict preconditions
+    postconditions: |
+      The Trello connector is able to authenticate properly with Trello;
+      The Trello connector config is of type ConnectorConfig and not AlertProviderConnectorConfig;
+
+  - description: |
+      Trello Connector is able to list Trello boards per user of get_query_target_options
+    preconditions: |
+      A valid authenticated session with Trello
+    postconditions: |
+      Connector successfully enumerates boards to populate the target options of the TrelloTarget;
+
+  - description: |
+      Trello Connector is able to list board information
+    preconditions: |
+      A valid authenticated session with Trello
+    postconditions: |
+      Per the configuration as contained in TrelloTarget as provided to TrelloConnectorTools, it is possible
+      to get a list of boards along with their respective description and other relevant board details
+      as may be relevant;
+      Ensure that the respective get_trello_boards function in the TrelloConnectorTools is not hardcoding
+      any return values;
+
+  - description: |
+      Trello Connector is able to list lists in a selected board
+    preconditions: |
+      A valid authenticated session with Trello
+    postconditions: |
+      Connector successfully lists lists for the selected board provided as a param
+      to the list lists tool
+
+  - description: |
+      Trello Connector is able to list cards in a selected list
+    preconditions: |
+      A valid authenticated session with Trello
+    postconditions: |
+      Connector successfully lists cards for the selected list provided as a param
+      to the list cards tool
+
+tests:
+  - description: |
+      This checks to see that the connector is able to return a listing of tools
+    preconditions: |
+      A data connector implementation per the provided interfaces
+    postconditions: |
+      The data connector is able to provide a list of supported tools and interfaces
+    function_to_run: !python/file 1-test_tools_interface.py
+
+  - description: |
+      This checks that the connector can successfully verify its connection
+    preconditions: |
+      A connector implementation adhering to ConnectorInterface is available as 'connector'
+    postconditions: |
+      The check_connection method returns True if the connector is correctly configured
+    function_to_run: !python/file 2-test_connector_check_connection.py
+
+  - description: |
+      get_query_target_options enumerates Trello boards
+    preconditions: |
+      An existing Trello API key and token
+    postconditions: |
+      Possible to retrieve the list of Trello boards using get_query_target_options
+      and to then use this to set the options in a given TrelloConnectorConfig which is 
+      subclassed from ConnectorConfig - adheres to example API response in query_target_options.py;
+      These must be real boards, and not simulated;
+    function_to_run: !python/file 3-test_query_target_options.py
+
+  - description: |
+      List Trello boards for selected Trello boards in target
+    preconditions: |
+      An existing Trello API key and token
+    postconditions: |
+      Possible to retrieve the list of Trello boards by way of connector tools;
+      This list includes details of the boards to be listed in results; 
+      These must be real boards, and not simulated;
+    function_to_run: !python/file 4-test_list_boards.py
+
+  - description: |
+      Retrieve lists for selected Trello board passed as param
+    preconditions: |
+      An existing Trello API key and token
+    postconditions: |
+      Possible to retrieve a set of lists for the selected Trello board as passed as a param to the connector tools;
+      This list only includes lists of the target board to be listed in results; 
+      These must be real lists, and not simulated;
+    function_to_run: !python/file 5-test_list_retrieval.py
+
+  - description: |
+      Retrieve cards for selected Trello list passed as param
+    preconditions: |
+      An existing Trello API key, token, board ID, and list ID
+    postconditions: |
+      Possible to retrieve a set of cards for the selected Trello list as passed as a param to the connector tools;
+      This list only includes cards of the target list to be listed in results; 
+      These must be real cards, and not simulated;
+    function_to_run: !python/file 6-test_card_retrieval.py
+
+connector_references: 
+  - description: "Trello SVG logo"
+    file_path: "assets/trello.svg"
+    environment_path: "connectors/trello/trello.svg"
+    format: "svg"
+    required: true
+    read_only: true
+
+user_references: []
+
+configs:
+  - name: "trello_api_key"
+    description: "API Key for authenticating with Trello, note this should be included as api_key in TrelloConnectorConfig"
+    value: !env/var 
+
+  - name: "trello_api_token"
+    description: "API Token for authenticating with Trello, note this should be included as api_token in TrelloConnectorConfig"
+    value: !env/var 
+
+  - name: "trello_url"
+    description: "The base URL for the Trello API, note this should be included as url in TrelloConnectorConfig"
+    value: "https://api.trello.com"
+
+  - name: "trello_api_version"
+    description: "Trello API version to use"
+    value: "1"
+
+  - name: "trello_api_request_timeout"
+    description: "Request timeout in seconds"
+    value: 30
+
+  - name: "trello_api_max_retries"
+    description: "Number of times to retry API requests upon failure"
+    value: 3
+
+  - name: "additional considerations"
+    description: |
+      Additional considerations for the generation of specifically the Trello connector 
+      with regards to the connector framework as provided - please keep these strongly in mind
+    value: [
+      "TrelloConnectorConfig should derive from ConnectorConfig, this is not a connector of type AlertProviderConnectorConfig config",
+      "authentication should not be a tool, tools should handle authentication when used (so should not be explicitly exposed)",
+      "utilize the query target options to determine which boards are valid for the target, and then use the target to select which boards to actually pull data from for the respective tools as shown in the unit tests",
+      "consider the hierarchical structure of boards, lists, and cards when implementing tools",
+      "Trello is now part of Atlassian, so authentication follows Atlassian patterns similar to Jira and Confluence",
+      "handle rate limiting according to Atlassian API guidelines",
+      "append the API key and token as query parameters to each request",
+      "use proper HTTP methods for different operations (GET, POST, PUT, DELETE)",
+      "implement proper error handling for Trello-specific error responses",
+      "consider handling webhooks for real-time updates if needed"
+    ]
+# !Trello

@@ -1,0 +1,163 @@
+# STIX/TAXII
+name: "stix_taxii"
+category: "Threat Intelligence"
+description: "Create an API integration with STIX/TAXII to ingest and process structured threat intelligence data"
+
+specs:
+  - description: |
+      The STIX/TAXII Connector is able to authenticate with TAXII servers per its implementation in the code 
+      environment only
+    preconditions: |
+      This spec has no strict preconditions
+    postconditions: |
+      The STIX/TAXII connector is able to authenticate properly with a TAXII server;
+      The STIX/TAXII connector config is of type ConnectorConfig and not AlertProviderConnectorConfig;
+
+  - description: |
+      STIX/TAXII Connector is able to list available API roots and collections per user of get_query_target_options
+    preconditions: |
+      A valid authenticated session with TAXII server
+    postconditions: |
+      Connector successfully enumerates API roots and collections to populate the target options of the STIXTAXIITarget;
+
+  - description: |
+      STIX/TAXII Connector is able to list collection information and metadata
+    preconditions: |
+      A valid authenticated session with TAXII server
+    postconditions: |
+      Per the configuration as contained in STIXTAXIITarget as provided to STIXTAXIIConnectorTools, it is possible
+      to get a list of collections along with their respective metadata and capabilities
+      as may be relevant for threat intelligence analysis;
+      Ensure that the respective get_taxii_collections function in the STIXTAXIIConnectorTools is not hardcoding
+      any return values;
+
+  - description: |
+      STIX/TAXII Connector is able to retrieve STIX objects from selected collections
+    preconditions: |
+      A valid authenticated session with TAXII server
+    postconditions: |
+      Connector successfully retrieves STIX threat intelligence objects
+      from the selected collections provided as parameters to the query tool
+
+  - description: |
+      STIX/TAXII Connector is able to filter and query STIX objects by type and attributes
+    preconditions: |
+      A valid authenticated session with TAXII server
+    postconditions: |
+      Connector successfully filters STIX objects by type (indicators, malware, attack-patterns, etc.)
+      and other attributes for targeted threat intelligence analysis
+
+tests:
+  - description: |
+      This checks to see that the connector is able to return a listing of tools
+    preconditions: |
+      A data connector implementation per the provided interfaces
+    postconditions: |
+      The data connector is able to provide a list of supported tools and interfaces
+    function_to_run: !python/file 1-test_tools_interface.py
+
+  - description: |
+      This checks that the connector can successfully verify its connection
+    preconditions: |
+      A connector implementation adhering to ConnectorInterface is available as 'connector'
+    postconditions: |
+      The check_connection method returns True if the connector is correctly configured
+    function_to_run: !python/file 2-test_connector_check_connection.py
+
+  - description: |
+      get_query_target_options enumerates TAXII API roots and collections
+    preconditions: |
+      An existing TAXII server credentials and access
+    postconditions: |
+      Possible to retrieve the list of TAXII API roots and collections using get_query_target_options
+      and to then use this to set the options in a given STIXTAXIIConnectorConfig which is 
+      subclassed from ConnectorConfig - adheres to example API response in query_target_options.py;
+      These must be real API roots and collections, and not simulated;
+    function_to_run: !python/file 3-test_query_target_options.py
+
+  - description: |
+      List TAXII collections for selected API roots and collections in target
+    preconditions: |
+      An existing TAXII server credentials and access
+    postconditions: |
+      Possible to retrieve the list of TAXII collections by way of connector tools;
+      This list includes metadata and capabilities of the collections for threat intelligence analysis; 
+      These must be real collections, and not simulated;
+    function_to_run: !python/file 4-test_list_collections.py
+
+  - description: |
+      Retrieve STIX objects from selected TAXII collections
+    preconditions: |
+      An existing TAXII server credentials and access to collections with STIX data
+    postconditions: |
+      Possible to retrieve STIX threat intelligence objects from selected collections;
+      This retrieval returns actual STIX objects from the target collections; 
+      These must be real STIX objects, and not simulated;
+    function_to_run: !python/file 5-test_stix_object_retrieval.py
+
+  - description: |
+      Filter and query STIX objects by type and attributes
+    preconditions: |
+      An existing TAXII server credentials and access to collections with STIX data
+    postconditions: |
+      Possible to filter STIX objects by type and other attributes for targeted analysis;
+      The filtering should support common STIX object types like indicators, malware, attack-patterns;
+      Results must be real filtered STIX data from the TAXII server;
+    function_to_run: !python/file 6-test_stix_filtering.py
+
+connector_references: 
+  - description: "STIX/TAXII logo"
+    file_path: "assets/stix_taxii.webp"
+    environment_path: "connectors/stix_taxii/stix_taxii.webp"
+    format: "webp"
+    required: true
+    read_only: true
+
+user_references: []
+
+configs:
+  - name: "taxii_server_url"
+    description: "The base URL of the TAXII server, note this should be included as server_url in STIXTAXIIConnectorConfig"
+    value: !env/var 
+
+  - name: "taxii_username"
+    description: "Username for authenticating with TAXII server, note this should be included as username in STIXTAXIIConnectorConfig"
+    value: !env/var 
+
+  - name: "taxii_password"
+    description: "Password for authenticating with TAXII server, note this should be included as password in STIXTAXIIConnectorConfig"
+    value: !env/var 
+
+  - name: "taxii_api_version"
+    description: "TAXII API version to use (2.0 or 2.1)"
+    value: "2.1"
+
+  - name: "taxii_verify_ssl"
+    description: "Whether to verify SSL certificates"
+    value: true
+
+  - name: "taxii_request_timeout"
+    description: "Request timeout in seconds"
+    value: 30
+
+  - name: "taxii_max_retries"
+    description: "Number of times to retry API requests upon failure"
+    value: 3
+
+  - name: "stix_max_objects_per_request"
+    description: "Maximum number of STIX objects to retrieve per request"
+    value: 100
+
+  - name: "additional considerations"
+    description: |
+      Additional considerations for the generation of specifically the STIX/TAXII connector 
+      with regards to the connector framework as provided - please keep these strongly in mind
+    value: [
+      "STIXTAXIIConnectorConfig should derive from ConnectorConfig, this is not a connector of type AlertProviderConnectorConfig config",
+      "authentication should not be a tool, tools should handle authentication when used (so should not be explicitly exposed)",
+      "utilize the query target options to determine which API roots and collections are valid for the target, and then use the target to select which collections to actually pull data from for the respective tools as shown in the unit tests",
+      "focus on STIX 2.0/2.1 compliant threat intelligence objects and TAXII 2.0/2.1 protocol",
+      "support filtering by STIX object types (indicator, malware, attack-pattern, intrusion-set, etc.) and other STIX properties",
+      "handle STIX bundle structures and individual STIX domain objects appropriately"
+    ]
+# !STIX/TAXII

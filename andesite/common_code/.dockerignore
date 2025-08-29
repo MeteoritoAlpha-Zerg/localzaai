@@ -1,0 +1,11 @@
+**/build
+**/node_modules
+**/index.json
+**/stored_documents.pkl
+**/__pycache__
+**/.mypy_cache
+**/.venv
+**/venv
+**/.env
+tests
+pytest.ini

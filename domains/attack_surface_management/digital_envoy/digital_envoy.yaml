@@ -1,0 +1,221 @@
+# Digital Envoy
+name: "digital_envoy"
+category: "IP Intelligence & Geolocation"
+description: "Create an API integration with Digital Envoy to ingest, analyze, and process IP intelligence, geolocation insights, and cyber risk intelligence"
+
+specs:
+  - description: |
+      The Digital Envoy Connector is able to authenticate with Digital Envoy per its implementation in the code 
+      environment only
+    preconditions: |
+      This spec has no strict preconditions
+    postconditions: |
+      The Digital Envoy connector is able to authenticate properly with a Digital Envoy instance;
+      The Digital Envoy connector config is of type ConnectorConfig and not AlertProviderConnectorConfig;
+
+  - description: |
+      Digital Envoy Connector is able to list available data types and intelligence feeds per user of get_query_target_options
+    preconditions: |
+      A valid authenticated session with Digital Envoy
+    postconditions: |
+      Connector successfully enumerates available data types, intelligence feeds, and geolocation services to populate the target options of the DigitalEnvoyTarget;
+
+  - description: |
+      Digital Envoy Connector is able to retrieve IP geolocation and location intelligence data
+    preconditions: |
+      A valid authenticated session with Digital Envoy
+    postconditions: |
+      Per the configuration as contained in DigitalEnvoyTarget as provided to DigitalEnvoyConnectorTools, it is possible
+      to get comprehensive IP geolocation data including country, region, city, ISP, organization, and accuracy metrics
+      as may be relevant;
+      Ensure that the respective get_digital_envoy_geolocation function in the DigitalEnvoyConnectorTools is not hardcoding
+      any return values;
+
+  - description: |
+      Digital Envoy Connector is able to retrieve IP intelligence and threat analysis data
+    preconditions: |
+      A valid authenticated session with Digital Envoy
+    postconditions: |
+      Connector successfully retrieves IP intelligence data including threat classifications, risk scores, 
+      malicious activity indicators, and security assessments for IP addresses and ranges;
+
+  - description: |
+      Digital Envoy Connector is able to retrieve demographic and business intelligence data
+    preconditions: |
+      A valid authenticated session with Digital Envoy
+    postconditions: |
+      Connector successfully retrieves demographic profiles, business intelligence, market segmentation,
+      and audience analytics data associated with IP addresses and geographic locations;
+
+  - description: |
+      Digital Envoy Connector is able to perform bulk IP analysis and batch processing
+    preconditions: |
+      A valid authenticated session with Digital Envoy
+    postconditions: |
+      Connector successfully processes bulk IP address lists, performs batch geolocation lookups,
+      and returns comprehensive intelligence data for multiple IP addresses efficiently;
+
+  - description: |
+      Digital Envoy Connector is able to retrieve historical and trend analysis data
+    preconditions: |
+      A valid authenticated session with Digital Envoy
+    postconditions: |
+      Connector successfully retrieves historical IP intelligence trends, geolocation changes over time,
+      and temporal analysis data for IP addresses and geographic regions;
+
+tests:
+  - description: |
+      This checks to see that the connector is able to return a listing of tools
+    preconditions: |
+      A data connector implementation per the provided interfaces
+    postconditions: |
+      The data connector is able to provide a list of supported tools and interfaces
+    function_to_run: !python/file 1-test_tools_interface.py
+
+  - description: |
+      This checks that the connector can successfully verify its connection
+    preconditions: |
+      A connector implementation adhering to ConnectorInterface is available as 'connector'
+    postconditions: |
+      The check_connection method returns True if the connector is correctly configured
+    function_to_run: !python/file 2-test_connector_check_connection.py
+
+  - description: |
+      get_query_target_options enumerates Digital Envoy data types and intelligence feeds
+    preconditions: |
+      An existing Digital Envoy API credentials and service access
+    postconditions: |
+      Possible to retrieve the list of available Digital Envoy data types, intelligence feeds, and geolocation services using get_query_target_options
+      and to then use this to set the options in a given DigitalEnvoyConnectorConfig which is 
+      subclassed from ConnectorConfig - adheres to example API response in query_target_options.py;
+      These must be real data types and feeds, and not simulated;
+    function_to_run: !python/file 3-test_query_target_options.py
+
+  - description: |
+      Retrieve IP geolocation and location intelligence data
+    preconditions: |
+      An existing Digital Envoy API credentials and service access
+    postconditions: |
+      Possible to retrieve comprehensive IP geolocation data by way of connector tools;
+      This data includes detailed location information, ISP details, and accuracy metrics; 
+      These must be real geolocation data, and not simulated;
+    function_to_run: !python/file 4-test_ip_geolocation.py
+
+  - description: |
+      Retrieve IP intelligence and threat analysis data
+    preconditions: |
+      An existing Digital Envoy API credentials and service access
+    postconditions: |
+      Possible to retrieve IP intelligence and threat analysis data passed to the connector tools;
+      This data includes threat classifications, risk scores, and security assessments; 
+      These must be real intelligence data, and not simulated;
+    function_to_run: !python/file 5-test_ip_intelligence.py
+
+  - description: |
+      Retrieve demographic and business intelligence data
+    preconditions: |
+      An existing Digital Envoy API credentials and service access
+    postconditions: |
+      Possible to retrieve demographic and business intelligence data passed to the connector tools;
+      This information includes demographic profiles, market data, and audience analytics; 
+      These must be real demographic data, and not simulated;
+    function_to_run: !python/file 6-test_demographic_intelligence.py
+
+  - description: |
+      Perform bulk IP analysis and batch processing
+    preconditions: |
+      An existing Digital Envoy API credentials and service access
+    postconditions: |
+      Possible to process bulk IP address lists and retrieve batch intelligence data passed to the connector tools;
+      This processing includes efficient handling of multiple IP addresses and comprehensive result sets; 
+      These must be real bulk processing results, and not simulated;
+    function_to_run: !python/file 7-test_bulk_analysis.py
+
+  - description: |
+      Retrieve historical and trend analysis data
+    preconditions: |
+      An existing Digital Envoy API credentials and service access
+    postconditions: |
+      Possible to retrieve historical trends and temporal analysis data passed to the connector tools;
+      This data includes historical IP intelligence and geolocation changes over time; 
+      These must be real historical data, and not simulated;
+    function_to_run: !python/file 8-test_historical_analysis.py
+
+connector_references: 
+  - description: "Digital Envoy logo"
+    file_path: "assets/digital_envoy.png"
+    environment_path: "connectors/digital_envoy/digital_envoy.png"
+    format: "png"
+    required: true
+    read_only: true
+
+user_references: []
+
+configs:
+  - name: "digital_envoy_api_key"
+    description: "API Key for authenticating with Digital Envoy, note this should be included as api_key in DigitalEnvoyConnectorConfig"
+    value: !env/var 
+
+  - name: "digital_envoy_api_secret"
+    description: "API Secret for authenticating with Digital Envoy, note this should be included as api_secret in DigitalEnvoyConnectorConfig"
+    value: !env/var 
+
+  - name: "digital_envoy_base_url"
+    description: "Base URL for Digital Envoy API (defaults to production endpoint)"
+    value: "https://api.digitalenvoy.net"
+
+  - name: "digital_envoy_api_version"
+    description: "Digital Envoy API version to use (defaults to v2)"
+    value: "v2"
+
+  - name: "digital_envoy_api_request_timeout"
+    description: "Request timeout in seconds"
+    value: 30
+
+  - name: "digital_envoy_api_max_retries"
+    description: "Number of times to retry API requests upon failure"
+    value: 3
+
+  - name: "digital_envoy_default_page_size"
+    description: "Default number of results to return per page"
+    value: 100
+
+  - name: "digital_envoy_max_pages"
+    description: "Maximum number of pages to retrieve for paginated results"
+    value: 10
+
+  - name: "digital_envoy_batch_size"
+    description: "Maximum number of IP addresses to process in a single batch request"
+    value: 1000
+
+  - name: "digital_envoy_rate_limit_delay"
+    description: "Delay in seconds between API requests to respect rate limiting"
+    value: 0.1
+
+  - name: "digital_envoy_cache_ttl"
+    description: "Time-to-live for cached geolocation data in seconds"
+    value: 3600
+
+  - name: "digital_envoy_accuracy_threshold"
+    description: "Minimum accuracy threshold for geolocation results (0.0-1.0)"
+    value: 0.8
+
+  - name: "additional considerations"
+    description: |
+      Additional considerations for the generation of specifically the Digital Envoy connector 
+      with regards to the connector framework as provided - please keep these strongly in mind
+    value: [
+      "DigitalEnvoyConnectorConfig should derive from ConnectorConfig, this is not a connector of type AlertProviderConnectorConfig config",
+      "authentication should not be a tool, tools should handle authentication when used (so should not be explicitly exposed)",
+      "utilize the query target options to determine which data types and intelligence feeds are valid for the target, and then use the target to select which data sources to actually pull from for the respective tools as shown in the unit tests",
+      "implement proper pagination and batch processing for large IP address datasets as Digital Envoy API supports bulk operations",
+      "handle rate limiting gracefully as Digital Envoy API has usage quotas and request rate limits",
+      "support both single IP lookups and bulk batch processing for efficient data retrieval",
+      "provide meaningful error messages when API quota is exceeded, authentication fails, or IP addresses are invalid",
+      "implement caching mechanisms for geolocation data to reduce API calls and improve performance",
+      "ensure proper handling of IPv4 and IPv6 addresses with appropriate validation",
+      "support filtering by accuracy thresholds, confidence levels, and data freshness requirements",
+      "maintain data integrity when processing large volumes of IP intelligence and geolocation data",
+      "implement proper error handling for invalid IP addresses, network timeouts, and service unavailability"
+    ]
+# !Digital Envoy

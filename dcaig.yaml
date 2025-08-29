@@ -1,0 +1,466 @@
+benchmarks:
+  network_mapping:            !include domains/network_mapping/dcaig_network_mapping.yaml
+  case_management:            !include domains/case_management/dcaig_case_management.yaml
+  communication:              !include domains/communication/dcaig_communication.yaml
+  siem:                       !include domains/siem/dcaig_siem.yaml
+  soar:                       !include domains/soar/dcaig_soar.yaml
+  data_source:                !include domains/data_source/dcaig_data_source.yaml
+  third_party:                !include domains/third_party/dcaig_third_party.yaml
+  telemetry:                  !include domains/telemetry/dcaig_telemetry.yaml
+  risk_management:            !include domains/risk_management/dcaig_risk_management.yaml
+  passive_dns:                !include domains/passive_dns/dcaig_passive_dns.yaml  
+  deception_detection:        !include domains/deception_detection/dcaig_deception_detection.yaml
+  malware_and_virus:          !include domains/malware_and_virus/dcaig_malware_and_virus.yaml    
+  asset_management:           !include domains/asset_management/dcaig_asset_management.yaml
+  exposure_vulnerability:     !include domains/exposure_vulnerability/dcaig_exposure_vulnerability.yaml
+  threat_intelligence:        !include domains/threat_intelligence/dcaig_threat_intelligence.yaml
+  attack_surface_management:  !include domains/attack_surface_management/dcaig_attack_surface_management.yaml
+  other:                      !include domains/other/dcaig_other.yaml
+
+# common specs to apply to all benchmarks 
+common_specs:
+    - description: |
+        Implementation does not simulate, fake, or use dummy implementations to cheat functionality 
+      preconditions: |
+        A valid implementation and configuration
+      postconditions: |
+        The implementation accomplishes the all specifications and unit tests and code 
+        does not simulate, cheat, fake or use dummy implementations for any aspect of it's functionality;
+        It does not simulate API calls, data, or anything else of this nature;
+
+    - description: |
+        Connector Implementation handles API rate limiting and retries requests when needed per it's 
+        implementation in the code environment only
+      preconditions: |
+        A valid Connector implementation is provided
+      postconditions: |
+        Connector gracefully handles rate-limiting responses; 
+
+    - description: |
+        Evaluate that the Connector correctly inherits from ConnectorInterface as defined in 
+        connector.py. The spec will check that all required abstract methods are implemented 
+        and that the connector can successfully perform a connection check using valid configuration.
+      preconditions: |
+        Consider example connectors and connector interface as provided
+      postconditions: |
+        Connector inherits and defines all necessary requirements of ConnectorInterface per 
+        connector.py per the provided interface
+
+    - description: |
+        This specification verifies that the Connector correctly implements tools functionality by 
+        inheriting from ConnectorToolsInterface. It checks that all required abstract methods are 
+        implemented and return appropriately and that the interface methods are defined and callable, 
+        matching the behavior of similar connectors provided for comparison
+      preconditions: |
+        Consider example connectors and connector interface as provided
+      postconditions: |
+        Connector adheres to the ConnectorToolsInterface interface to define tools as defined in 
+        tools.py and used in connector.py to define tools; consider the example connector's 
+        tools.py for examples and considerations
+
+    - description: |
+        Connector implementation is entirely in the code environment, and does not require external 
+        resources to be evaluated
+      preconditions: |
+        This spec has no strict preconditions
+      postconditions: |
+        Entirety of the connector implementation, per the provided interfaces, is entirely in the 
+        code environment;
+
+    - description: |
+        Ensure that tool methods associated with connector operations are implemented in the 
+        dedicated tool class rather than within the main connector class, this holds for other classes
+        as well
+      preconditions: |
+        A connector exists which implements a main ConnectorInterface along with a separate 
+        ConnectorToolsInterface; tool methods should be clearly defined in the tool class
+      postconditions: |
+        The specification must confirm that all methods used to interact with external APIs 
+        (e.g., get_asset_info, get_vulnerabilities, etc.) are part of the tool class 
+        implementation (i.e., subclass of ConnectorToolsInterface) and not mixed into the main 
+        connector class - this should intently hold for other classes in the architecture
+
+    - description: |
+        Specification to ensure that the Connector delegates core functionality to its dedicated 
+        tool class rather than having duplicate or recursive logic within the connector. 
+        This spec checks that tools contain the implementation logic for interacting with the connector data
+        source, and that the connector only serves as a configuration holder and dispatch mechanism
+      preconditions: |
+        Connector must be instantiated with a valid configuration; Connector.get_tools() should 
+        return a non-empty list of Tool objects where each tool has an execute_fn defined; 
+        the environment simulates API calls
+      postconditions: |
+        For each core functionality tool provided by Connector the specification must verify 
+        that the implementation logic resides in the tool class and not as 
+        redundant direct calls in the Connector. The spec should fail if the tool’s execute_fn 
+        simply wraps a call back to the connector's methods or if there is any sign of duplicate 
+        business logic in both the connector and tool layers
+
+    - description: |
+        Specification to ensure that the Connector code maintains high stylistic quality and does not contain dead, 
+        duplicate, or unnecessary code. This spec checks that the implementation follows consistent coding 
+        patterns, is well-organized, and only includes code that serves a functional purpose.
+      preconditions: |
+        Connector implementation is complete and functional; all classes and methods are defined 
+        and accessible; the code compiles without errors
+      postconditions: |
+        The specification must verify that: (1) No unreachable or "dead" code exists in the implementation; 
+        (2) No duplicate functionality is implemented in multiple places; (3) All imports are actually used; 
+        (4) The code follows a consistent style with proper naming conventions, indentation, and organization; 
+        (5) There are no commented-out code blocks or TODOs that should have been resolved; 
+        (6) No unnecessary abstractions or overly complex structures exist where simpler solutions would suffice; 
+        (7) All "placeholder" or "stub" code has been replaced with actual implementations
+
+    - description: |
+        Specification to ensure that every tool, method, and input model in the implementation 
+        includes sufficiently descriptive docstrings. 
+      preconditions: |
+        Connector implementation is complete and contains all required tools, models, and methods; 
+        the code compiles without errors
+      postconditions: |
+        The specification must verify that: (1) Every public class, method, and function has a docstring that 
+        clearly explains its purpose and usage; Most critically, the docstring MUST include how the 
+        function should be used in terms of parameters and return values - this is especially critical 
+        for connector tools
+
+    # NOTE: not feasible give create/update/delete issue requirements 
+    # - description: "Evaluate that all connectors in the system only permit GET operations. This test ensures that any methods that attempt to perform data modifications (such as POST, PUT, or DELETE operations) are disabled, raise an error, or are effectively no-ops, in alignment with our current design that only supports GET operations."
+    #   preconditions: "Connectors are instantiated in the environment; the configuration of each connector is set up; no modifications to data have been performed prior to the test."
+    #   postconditions: "Any attempt to perform non-GET operations (i.e., POST, PUT, DELETE) on any connector results in an error, no-ops, or are otherwise disabled, ensuring that only GET operations are permitted."
+
+# common tests to apply to all benchmarks 
+common_tests: []
+
+# common references to apply to all benchmarks 
+common_references:
+    # example connectors
+
+    # example tenable connector 
+    - description: "example connector.py of a tenable connector for purpose of comparison"
+      file_path: "andesite/connectors_code/connectors/tenable/connector/connector.py"
+      workspace_path: "tenable_connector_example/connector.py"
+      format: "python"
+      required: true
+      read_only: true
+    
+    - description: "example config.py of a tenable connector for purpose of comparison"
+      file_path: "andesite/connectors_code/connectors/tenable/connector/config.py"
+      workspace_path: "tenable_connector_example/config.py"
+      format: "python"
+      required: true
+      read_only: true
+
+    - description: "example target.py of a tenable connector for purpose of comparison"
+      file_path: "andesite/connectors_code/connectors/tenable/connector/target.py"
+      workspace_path: "tenable_connector_example/target.py"
+      format: "python"
+      required: true
+      read_only: true
+
+    - description: "example tools.py of a tenable connector for purpose of comparison"
+      file_path: "andesite/connectors_code/connectors/tenable/connector/tools.py"
+      workspace_path: "tenable_connector_example/tools.py"
+      format: "python"
+      required: true
+      read_only: true
+
+    # example splunk connector 
+    - description: "example connector.py of a splunk connector for purpose of comparison"
+      file_path: "andesite/connectors_code/connectors/splunk/connector/connector.py"
+      workspace_path: "splunk_connector_example/connector.py"
+      format: "python"
+      required: true
+      read_only: true
+
+    - description: "example alerts.py of a splunk connector for purpose of comparison"
+      file_path: "andesite/connectors_code/connectors/splunk/connector/alerts.py"
+      workspace_path: "splunk_connector_example/alerts.py"
+      format: "python"
+      required: true
+      read_only: true
+    
+    - description: "example config.py of a splunk connector for purpose of comparison"
+      file_path: "andesite/connectors_code/connectors/splunk/connector/config.py"
+      workspace_path: "splunk_connector_example/config.py"
+      format: "python"
+      required: true
+      read_only: true
+
+    - description: "example target.py of a splunk connector for purpose of comparison"
+      file_path: "andesite/connectors_code/connectors/splunk/connector/target.py"
+      workspace_path: "splunk_connector_example/target.py"
+      format: "python"
+      required: true
+      read_only: true
+
+    - description: "example tools.py of a splunk connector for purpose of comparison"
+      file_path: "andesite/connectors_code/connectors/splunk/connector/tools.py"
+      workspace_path: "splunk_connector_example/tools.py"
+      format: "python"
+      required: true
+      read_only: true
+
+    # connector interface
+    - description: "cache.py"
+      file_path: "andesite/connectors_code/connectors/cache.py"
+      environment_path: "connectors/cache.py"
+      format: "python"
+      required: true
+      read_only: true
+
+    - description: "config.py defines the connector config interfaces that the connector must use"
+      file_path: "andesite/connectors_code/connectors/config.py"
+      environment_path: "connectors/config.py"
+      format: "python"
+      required: true
+      read_only: true
+
+    - description: "connector.py defines the connector interface that the connector must adhere to and inherit"
+      file_path: "andesite/connectors_code/connectors/connector.py"
+      environment_path: "connectors/connector.py"
+      format: "python"
+      required: true
+      read_only: true
+
+    - description: "initialize_connector_scopes.py defines connector scope initialization"
+      file_path: "andesite/connectors_code/connectors/initialize_connector_scopes.py"
+      environment_path: "connectors/initialize_connector_scopes.py"
+      format: "python"
+      required: true
+      read_only: true
+
+    - description: "main.py"
+      file_path: "andesite/connectors_code/connectors/main.py"
+      environment_path: "connectors/main.py"
+      format: "python"
+      required: true
+      read_only: true
+
+    - description: "metrics.py defines the connector metrics interfaces that the connector must use"
+      file_path: "andesite/connectors_code/connectors/metrics.py"
+      environment_path: "connectors/metrics.py"
+      format: "python"
+      required: true
+      read_only: true
+
+    - description: "parse_alert_configs.py defines parsing functions that the connector may use"
+      file_path: "andesite/connectors_code/connectors/parse_alert_configs.py"
+      environment_path: "connectors/parse_alert_configs.py"
+      format: "python"
+      required: true
+      read_only: true
+
+    - description: "query_instance.py defines the query instance that the connector needs to use "
+      file_path: "andesite/connectors_code/connectors/query_instance.py"
+      environment_path: "connectors/query_instance.py"
+      format: "python"
+      required: true
+      read_only: true
+
+    - description: "query_target_options.py defines the connector query_target_options interfaces that the connector must use"
+      file_path: "andesite/connectors_code/connectors/query_target_options.py"
+      environment_path: "connectors/query_target_options.py"
+      format: "python"
+      required: true
+      read_only: true
+
+    - description: "registry.py defines the connector registry and respective interfaces that the connector must adhere to"
+      file_path: "andesite/connectors_code/connectors/registry.py"
+      environment_path: "connectors/registry.py"
+      format: "python"
+      required: true
+      read_only: true
+
+    - description: "tools.py defines the interface of the tools the connector must implement and define"
+      file_path: "andesite/connectors_code/connectors/tools.py"
+      environment_path: "connectors/tools.py"
+      format: "python"
+      required: true
+      read_only: true
+
+    # relevant common code
+    - description: "collection_manager.py provides an abstract base class for MongoDB collection management with singleton pattern implementation and asynchronous initialization interface"
+      file_path: "andesite/common_code/common/base/collection_manager.py"
+      environment_path: "common/base/collection_manager.py"
+      format: "python"
+      required: true
+      read_only: true
+
+    - description: "common/clients/mongodb_client.py"
+      file_path: "andesite/common_code/common/clients/mongodb_client.py"
+      environment_path: "common/clients/mongodb_client.py"
+      format: "python"
+      required: true
+      read_only: true
+
+    - description: "jsonlogger.py provides structured JSON logging functionality with context tracking and formatting for API requests"
+      file_path: "andesite/common_code/common/jsonlogging/jsonlogger.py"
+      environment_path: "common/jsonlogging/jsonlogger.py"
+      format: "python"
+      required: true
+      read_only: true
+
+    - description: "dataset_description_manager.py implements MongoDB-based storage and retrieval of dataset metadata with async support and telemetry"
+      file_path: "andesite/common_code/common/managers/dataset_descriptions/dataset_description_manager.py"
+      environment_path: "common/managers/dataset_descriptions/dataset_description_manager.py"
+      format: "python"
+      required: true
+      read_only: true
+
+    - description: "dataset_description_model.py defines the Pydantic data model for dataset metadata with MongoDB serialization support"
+      file_path: "andesite/common_code/common/managers/dataset_descriptions/dataset_description_model.py"
+      environment_path: "common/managers/dataset_descriptions/dataset_description_model.py"
+      format: "python"
+      required: true
+      read_only: true
+
+    - description: "dataset_structure_model.py defines the Pydantic data model for dataset schemas with flexible attribute storage"
+      file_path: "andesite/common_code/common/managers/dataset_structures/dataset_structure_model.py"
+      environment_path: "common/managers/dataset_structures/dataset_structure_model.py"
+      format: "python"
+      required: true
+      read_only: true
+
+    - description: "enterprise_technique_manager.py implements MongoDB storage and retrieval for MITRE ATT&CK Enterprise techniques with prioritization support"
+      file_path: "andesite/common_code/common/managers/enterprise_technique/enterprise_technique_manager.py"
+      environment_path: "common/managers/enterprise_technique/enterprise_technique_manager.py"
+      format: "python"
+      required: true
+      read_only: true
+
+    - description: "prioritization_rules_manager.py implements MongoDB persistence for analysis prioritization rules with async operations and telemetry tracing"
+      file_path: "andesite/common_code/common/managers/prioritization_rules/prioritization_rules_manager.py"
+      environment_path: "common/managers/prioritization_rules/prioritization_rules_manager.py"
+      format: "python"
+      required: true
+      read_only: true
+
+    - description: "prioritization_rules_model.py defines the Pydantic data model for regex-based analysis prioritization with data validation"
+      file_path: "andesite/common_code/common/managers/prioritization_rules/prioritization_rules_model.py"
+      environment_path: "common/managers/prioritization_rules/prioritization_rules_model.py"
+      format: "python"
+      required: true
+      read_only: true
+
+    - description: "user_model.py defines the Pydantic model for user data with secure token encryption/decryption capabilities"
+      file_path: "andesite/common_code/common/managers/user/user_model.py"
+      environment_path: "common/managers/user/user_model.py"
+      format: "python"
+      required: true
+      read_only: true
+
+    - description: "common/managers/user/user_manager.py"
+      file_path: "andesite/common_code/common/managers/user/user_manager.py"
+      environment_path: "common/managers/user/user_manager.py"
+      format: "python"
+      required: true
+      read_only: true
+
+    - description: "common/models/alerts.py"
+      file_path: "andesite/common_code/common/models/alerts.py"
+      environment_path: "common/models/alerts.py"
+      format: "python"
+      required: true
+      read_only: true
+
+    - description: "common/models/connector_id_enum.py"
+      file_path: "andesite/common_code/common/models/connector_id_enum.py"
+      environment_path: "common/models/connector_id_enum.py"
+      format: "python"
+      required: true
+      read_only: false
+
+    - description: "cron_config.py defines a Pydantic model for cron expressions with validation and field parsing"
+      file_path: "andesite/common_code/common/models/cron_config.py"
+      environment_path: "common/models/cron_config.py"
+      format: "python"
+      required: true
+      read_only: true
+
+    - description: "secret.py"
+      file_path: "andesite/common_code/common/models/secret.py"
+      environment_path: "common/models/secret.py"
+      format: "python"
+      required: true
+      read_only: true
+
+    - description: "tool.py implements a framework for executable tools with input validation, telemetry and standardized result formatting"
+      file_path: "andesite/common_code/common/models/tool.py"
+      environment_path: "common/models/tool.py"
+      format: "python"
+      required: true
+      read_only: true
+
+    - description: "metadata.py used by tool.py"
+      file_path: "andesite/common_code/common/models/metadata.py"
+      environment_path: "common/models/metadata.py"
+      format: "python"
+      required: true
+      read_only: true
+
+    - description: "mitre.py"
+      file_path: "andesite/common_code/common/models/mitre.py"
+      environment_path: "common/models/mitre.py"
+      format: "python"
+      required: true
+      read_only: true
+
+    - description: "common/opentelemetry/context.py"
+      file_path: "andesite/common_code/common/opentelemetry/context.py"
+      environment_path: "common/opentelemetry/context.py"
+      format: "python"
+      required: true
+      read_only: true
+    
+    - description: "fallback_none.py provides a utility function for graceful Pydantic model validation with None fallback"
+      file_path: "andesite/common_code/common/utils/fallback_none.py"
+      environment_path: "common/utils/fallback_none.py"
+      format: "python"
+      required: true
+      read_only: true
+
+    - description: "flatten_dict.py"
+      file_path: "andesite/common_code/common/utils/flatten_dict.py"
+      environment_path: "common/utils/flatten_dict.py"
+      format: "python"
+      required: true
+      read_only: true
+
+    - description: "context.py"
+      file_path: "andesite/common_code/common/utils/context.py"
+      environment_path: "common/utils/context.py"
+      format: "python"
+      required: true
+      read_only: true
+
+    - description: "pydantic_helper.py"
+      file_path: "andesite/common_code/common/utils/pydantic_helper.py"
+      environment_path: "common/utils/pydantic_helper.py"
+      format: "python"
+      required: true
+      read_only: true
+
+    - description: "timer.py"
+      file_path: "andesite/common_code/common/utils/timer.py"
+      environment_path: "common/utils/timer.py"
+      format: "python"
+      required: true
+      read_only: true
+
+
+# common configs to apply to all benchmarks 
+common_configs:
+    - name: "considerations"
+      description: |
+        Various considerations for the generation of connectors with regards to the connector framework 
+        as provided - please keep these strongly in mind
+      value: [
+        "you are a top-tier data connector engineer, with an eye for detail and architecture - plus you're nice and easy to work with",
+        "ensure that you adhere to the connector architecture as defined in the connectors interface and provided connector examples",
+        "do not fake functionality, do not pass back simulated values - all functionality must work in the context of the connector specs, specifications and requirements",
+        "note that connectors may call to common code, this is not available - when this is the case, simply stub this out as needed",
+        "if an import failes, consider whether it's common code or a missing package - if missing package, install the package do not shim what are obvious dependencies",
+        "note that code in the connectors framework, with the exception of the enums, is read only and cannot be edited, modified or otherwise and must be used as is",
+        "if you find yourself hitting the same error, or issue, please consider 2-3 alternative approaches and choose one of them to try next",
+        "__init__.py files should not contain code, but they should be created as empty files as needed",
+      ]

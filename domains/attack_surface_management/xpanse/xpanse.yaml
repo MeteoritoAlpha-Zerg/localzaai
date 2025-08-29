@@ -1,0 +1,225 @@
+# Xpanse
+name: "xpanse"
+category: "Attack Surface Management"
+description: "Create an API integration with Xpanse to ingest, analyze, and process attack surface intelligence, asset exposure data, and security risk insights"
+
+specs:
+  - description: |
+      The Xpanse Connector is able to authenticate with Xpanse per its implementation in the code 
+      environment only
+    preconditions: |
+      This spec has no strict preconditions
+    postconditions: |
+      The Xpanse connector is able to authenticate properly with a Xpanse instance;
+      The Xpanse connector config is of type ConnectorConfig and not AlertProviderConnectorConfig;
+
+  - description: |
+      Xpanse Connector is able to list available asset categories and exposure types per user of get_query_target_options
+    preconditions: |
+      A valid authenticated session with Xpanse
+    postconditions: |
+      Connector successfully enumerates available asset categories, exposure types, and risk classifications to populate the target options of the XpanseTarget;
+
+  - description: |
+      Xpanse Connector is able to retrieve attack surface assets and exposure data
+    preconditions: |
+      A valid authenticated session with Xpanse
+    postconditions: |
+      Per the configuration as contained in XpanseTarget as provided to XpanseConnectorTools, it is possible
+      to get comprehensive attack surface asset data including exposed services, vulnerabilities, and risk assessments
+      as may be relevant;
+      Ensure that the respective get_xpanse_assets function in the XpanseConnectorTools is not hardcoding
+      any return values;
+
+  - description: |
+      Xpanse Connector is able to retrieve security incidents and exposure alerts
+    preconditions: |
+      A valid authenticated session with Xpanse
+    postconditions: |
+      Connector successfully retrieves security incidents, exposure alerts, and attack surface changes
+      for monitored assets and infrastructure;
+
+  - description: |
+      Xpanse Connector is able to retrieve vulnerability assessments and risk intelligence
+    preconditions: |
+      A valid authenticated session with Xpanse
+    postconditions: |
+      Connector successfully retrieves vulnerability assessments, CVE mappings, exposure risk scores,
+      and remediation recommendations for attack surface assets;
+
+  - description: |
+      Xpanse Connector is able to retrieve threat intelligence and attribution data
+    preconditions: |
+      A valid authenticated session with Xpanse
+    postconditions: |
+      Connector successfully retrieves threat intelligence, attack attribution, and adversary targeting
+      information related to exposed assets and attack surface elements;
+
+  - description: |
+      Xpanse Connector is able to retrieve attack surface monitoring and discovery data
+    preconditions: |
+      A valid authenticated session with Xpanse
+    postconditions: |
+      Connector successfully retrieves attack surface discovery data, asset attribution, and external
+      exposure monitoring for comprehensive attack surface visibility;
+
+tests:
+  - description: |
+      This checks to see that the connector is able to return a listing of tools
+    preconditions: |
+      A data connector implementation per the provided interfaces
+    postconditions: |
+      The data connector is able to provide a list of supported tools and interfaces
+    function_to_run: !python/file 1-test_tools_interface.py
+
+  - description: |
+      This checks that the connector can successfully verify its connection
+    preconditions: |
+      A connector implementation adhering to ConnectorInterface is available as 'connector'
+    postconditions: |
+      The check_connection method returns True if the connector is correctly configured
+    function_to_run: !python/file 2-test_connector_check_connection.py
+
+  - description: |
+      get_query_target_options enumerates Xpanse asset categories and exposure types
+    preconditions: |
+      An existing Xpanse API credentials and platform access
+    postconditions: |
+      Possible to retrieve the list of available Xpanse asset categories, exposure types, and risk classifications using get_query_target_options
+      and to then use this to set the options in a given XpanseConnectorConfig which is 
+      subclassed from ConnectorConfig - adheres to example API response in query_target_options.py;
+      These must be real asset categories and exposure types, and not simulated;
+    function_to_run: !python/file 3-test_query_target_options.py
+
+  - description: |
+      Retrieve attack surface assets and exposure data
+    preconditions: |
+      An existing Xpanse API credentials and platform access
+    postconditions: |
+      Possible to retrieve attack surface asset data by way of connector tools;
+      This data includes exposed services, asset details, and exposure assessments; 
+      These must be real attack surface data, and not simulated;
+    function_to_run: !python/file 4-test_attack_surface_assets.py
+
+  - description: |
+      Retrieve security incidents and exposure alerts
+    preconditions: |
+      An existing Xpanse API credentials and platform access
+    postconditions: |
+      Possible to retrieve security incidents and exposure alerts passed to the connector tools;
+      This data includes incident details, exposure changes, and attack surface alerts; 
+      These must be real security incident data, and not simulated;
+    function_to_run: !python/file 5-test_security_incidents.py
+
+  - description: |
+      Retrieve vulnerability assessments and risk intelligence
+    preconditions: |
+      An existing Xpanse API credentials and platform access
+    postconditions: |
+      Possible to retrieve vulnerability assessments and risk intelligence passed to the connector tools;
+      This information includes CVE data, risk scores, and remediation recommendations; 
+      These must be real vulnerability data, and not simulated;
+    function_to_run: !python/file 6-test_vulnerability_assessment.py
+
+  - description: |
+      Retrieve threat intelligence and attribution data
+    preconditions: |
+      An existing Xpanse API credentials and platform access
+    postconditions: |
+      Possible to retrieve threat intelligence and attribution data passed to the connector tools;
+      This data includes threat actor information, attack attribution, and adversary targeting; 
+      These must be real threat intelligence data, and not simulated;
+    function_to_run: !python/file 7-test_threat_intelligence.py
+
+  - description: |
+      Retrieve attack surface monitoring and discovery data
+    preconditions: |
+      An existing Xpanse API credentials and platform access
+    postconditions: |
+      Possible to retrieve attack surface monitoring and discovery data passed to the connector tools;
+      This data includes asset discovery, attribution analysis, and exposure monitoring; 
+      These must be real discovery data, and not simulated;
+    function_to_run: !python/file 8-test_attack_surface_monitoring.py
+
+connector_references: 
+  - description: "Xpanse logo"
+    file_path: "assets/xpanse.png"
+    environment_path: "connectors/xpanse/xpanse.png"
+    format: "png"
+    required: true
+    read_only: true
+
+user_references: []
+
+configs:
+  - name: "xpanse_api_url"
+    description: "The base URL of the Xpanse API endpoint, note this should be included as api_url in XpanseConnectorConfig"
+    value: !env/var 
+
+  - name: "xpanse_api_key"
+    description: "API Key for authenticating with Xpanse, note this should be included as api_key in XpanseConnectorConfig"
+    value: !env/var 
+
+  - name: "xpanse_api_key_id"
+    description: "API Key ID for authenticating with Xpanse, note this should be included as api_key_id in XpanseConnectorConfig"
+    value: !env/var 
+
+  - name: "xpanse_tenant_id"
+    description: "Tenant ID for multi-tenant Xpanse access, note this should be included as tenant_id in XpanseConnectorConfig"
+    value: !env/var 
+
+  - name: "xpanse_api_version"
+    description: "Xpanse API version to use (defaults to v1)"
+    value: "v1"
+
+  - name: "xpanse_api_request_timeout"
+    description: "Request timeout in seconds"
+    value: 60
+
+  - name: "xpanse_api_max_retries"
+    description: "Number of times to retry API requests upon failure"
+    value: 3
+
+  - name: "xpanse_asset_refresh_interval"
+    description: "Attack surface asset refresh interval in hours"
+    value: 6
+
+  - name: "xpanse_incident_sync_interval"
+    description: "Security incident synchronization interval in minutes"
+    value: 30
+
+  - name: "xpanse_risk_score_threshold"
+    description: "Minimum risk score threshold for asset filtering (0-100)"
+    value: 50
+
+  - name: "xpanse_exposure_severity_filter"
+    description: "Minimum exposure severity level to retrieve (Low, Medium, High, Critical)"
+    value: "Medium"
+
+  - name: "xpanse_default_page_size"
+    description: "Default number of results to return per page"
+    value: 100
+
+  - name: "xpanse_max_pages"
+    description: "Maximum number of pages to retrieve for paginated results"
+    value: 20
+
+  - name: "additional considerations"
+    description: |
+      Additional considerations for the generation of specifically the Xpanse connector 
+      with regards to the connector framework as provided - please keep these strongly in mind
+    value: [
+      "XpanseConnectorConfig should derive from ConnectorConfig, this is not a connector of type AlertProviderConnectorConfig config",
+      "authentication should not be a tool, tools should handle authentication when used (so should not be explicitly exposed)",
+      "utilize the query target options to determine which asset categories and exposure types are valid for the target, and then use the target to select which attack surface data to actually pull from for the respective tools as shown in the unit tests",
+      "implement proper handling of attack surface assets including exposed services, vulnerabilities, and attribution data",
+      "ensure proper categorization of exposure types, risk levels, and security incidents specific to external attack surface",
+      "handle rate limiting gracefully as Xpanse API has usage quotas and enterprise-grade access controls",
+      "provide meaningful error messages when API quota is exceeded, authentication fails, or attack surface data access is restricted",
+      "implement proper data classification and handling for sensitive attack surface intelligence and exposure data",
+      "support filtering by risk scores, exposure severity, and asset categories for efficient attack surface analysis",
+      "maintain data integrity when processing large volumes of attack surface assets and security exposure data",
+      "ensure proper handling of time-sensitive exposure alerts and real-time attack surface changes",
+      "leverage Xpanse's external discovery capabilities for comprehensive attack surface visibility and asset attribution"
+    ]
+# !Xpanse

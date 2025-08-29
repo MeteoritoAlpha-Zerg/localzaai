@@ -1,0 +1,168 @@
+# DomainTools
+name: "domaintools"
+category: "DNS Intelligence"
+description: "Create an API integration with DomainTools to ingest, analyze, and process domain reputation scores, DNS intelligence, and cybersecurity risk insights"
+
+specs:
+  - description: |
+      The DomainTools Connector is able to authenticate with DomainTools API per its implementation in the code 
+      environment only
+    preconditions: |
+      This spec has no strict preconditions
+    postconditions: |
+      The DomainTools connector is able to authenticate properly with the DomainTools API;
+      The DomainTools connector config is of type ConnectorConfig and not AlertProviderConnectorConfig;
+
+  - description: |
+      DomainTools Connector is able to list available domain lists and monitoring profiles per user of get_query_target_options
+    preconditions: |
+      A valid authenticated session with DomainTools API
+    postconditions: |
+      Connector successfully enumerates domain lists and monitoring profiles to populate the target options of the DomainToolsTarget;
+
+  - description: |
+      DomainTools Connector is able to retrieve domain profile and monitoring information
+    preconditions: |
+      A valid authenticated session with DomainTools API
+    postconditions: |
+      Per the configuration as contained in DomainToolsTarget as provided to DomainToolsConnectorTools, it is possible
+      to get domain profiles and monitoring data along with their respective metadata and intelligence insights
+      as may be relevant for DNS intelligence analysis;
+      Ensure that the respective get_domain_profiles function in the DomainToolsConnectorTools is not hardcoding
+      any return values;
+
+  - description: |
+      DomainTools Connector is able to retrieve domain reputation scores and risk assessments
+    preconditions: |
+      A valid authenticated session with DomainTools API
+    postconditions: |
+      Connector successfully retrieves domain reputation scores, risk assessments, and cybersecurity insights
+      from the selected domains provided as parameters to the query tool
+
+  - description: |
+      DomainTools Connector is able to analyze DNS intelligence and domain relationships
+    preconditions: |
+      A valid authenticated session with DomainTools API
+    postconditions: |
+      Connector successfully retrieves and analyzes DNS intelligence data, domain relationships,
+      and infrastructure insights for comprehensive cybersecurity analysis
+
+tests:
+  - description: |
+      This checks to see that the connector is able to return a listing of tools
+    preconditions: |
+      A data connector implementation per the provided interfaces
+    postconditions: |
+      The data connector is able to provide a list of supported tools and interfaces
+    function_to_run: !python/file 1-test_tools_interface.py
+
+  - description: |
+      This checks that the connector can successfully verify its connection
+    preconditions: |
+      A connector implementation adhering to ConnectorInterface is available as 'connector'
+    postconditions: |
+      The check_connection method returns True if the connector is correctly configured
+    function_to_run: !python/file 2-test_connector_check_connection.py
+
+  - description: |
+      get_query_target_options enumerates DomainTools domain lists and monitoring profiles
+    preconditions: |
+      An existing DomainTools API username and key
+    postconditions: |
+      Possible to retrieve the list of DomainTools domain lists and monitoring profiles using get_query_target_options
+      and to then use this to set the options in a given DomainToolsConnectorConfig which is 
+      subclassed from ConnectorConfig - adheres to example API response in query_target_options.py;
+      These must be real domain lists and profiles, and not simulated;
+    function_to_run: !python/file 3-test_query_target_options.py
+
+  - description: |
+      List DomainTools domain profiles for selected targets
+    preconditions: |
+      An existing DomainTools API username and key
+    postconditions: |
+      Possible to retrieve the list of DomainTools domain profiles by way of connector tools;
+      This list includes metadata and intelligence insights for DNS analysis; 
+      These must be real domain profiles, and not simulated;
+    function_to_run: !python/file 4-test_list_domain_profiles.py
+
+  - description: |
+      Retrieve domain reputation scores from selected domains
+    preconditions: |
+      An existing DomainTools API username and key with access to reputation data
+    postconditions: |
+      Possible to retrieve domain reputation scores and risk assessments from selected domains;
+      This query returns actual reputation data from the target domains; 
+      These must be real reputation scores, and not simulated;
+    function_to_run: !python/file 5-test_domain_reputation.py
+
+  - description: |
+      Analyze DNS intelligence and domain relationships
+    preconditions: |
+      An existing DomainTools API username and key with access to DNS intelligence
+    postconditions: |
+      Possible to retrieve and analyze DNS intelligence data and domain relationships;
+      The analysis should support comprehensive cybersecurity intelligence use cases;
+      Results must be real DNS intelligence data from the DomainTools API;
+    function_to_run: !python/file 6-test_dns_intelligence.py
+
+connector_references: 
+  - description: "DomainTools logo"
+    file_path: "assets/domaintools.png"
+    environment_path: "connectors/domaintools/domaintools.png"
+    format: "png"
+    required: true
+    read_only: true
+
+user_references: []
+
+configs:
+  - name: "domaintools_api_username"
+    description: "API Username for authenticating with DomainTools, note this should be included as api_username in DomainToolsConnectorConfig"
+    value: !env/var 
+
+  - name: "domaintools_api_key"
+    description: "API Key for authenticating with DomainTools, note this should be included as api_key in DomainToolsConnectorConfig"
+    value: !env/var 
+
+  - name: "domaintools_base_url"
+    description: "Base URL for DomainTools API (default: https://api.domaintools.com)"
+    value: "https://api.domaintools.com"
+
+  - name: "domaintools_api_request_timeout"
+    description: "Request timeout in seconds"
+    value: 30
+
+  - name: "domaintools_api_max_retries"
+    description: "Number of times to retry API requests upon failure"
+    value: 3
+
+  - name: "domaintools_max_domains_per_request"
+    description: "Maximum number of domains to process per request"
+    value: 100
+
+  - name: "domaintools_risk_score_threshold"
+    description: "Minimum risk score threshold to include in queries (0-100)"
+    value: 70
+
+  - name: "domaintools_reputation_threshold"
+    description: "Minimum reputation threshold for domain filtering (low, medium, high)"
+    value: "medium"
+
+  - name: "domaintools_include_historical_data"
+    description: "Whether to include historical DNS data in queries"
+    value: true
+
+  - name: "additional considerations"
+    description: |
+      Additional considerations for the generation of specifically the DomainTools connector 
+      with regards to the connector framework as provided - please keep these strongly in mind
+    value: [
+      "DomainToolsConnectorConfig should derive from ConnectorConfig, this is not a connector of type AlertProviderConnectorConfig config",
+      "authentication should not be a tool, tools should handle authentication when used (so should not be explicitly exposed)",
+      "utilize the query target options to determine which domain lists and monitoring profiles are valid for the target, and then use the target to select which data sources to actually pull data from for the respective tools as shown in the unit tests",
+      "focus on domain reputation scores, DNS intelligence, and cybersecurity risk insights",
+      "support filtering by risk scores, reputation levels, and domain age for targeted analysis",
+      "handle both individual domain lookups and bulk domain analysis capabilities",
+      "include historical DNS data and domain relationship mapping for comprehensive intelligence"
+    ]
+# !DomainTools

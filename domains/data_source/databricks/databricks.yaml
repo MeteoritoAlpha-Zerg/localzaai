@@ -1,0 +1,158 @@
+# Databricks
+name: "databricks"
+category: "Security Analytics"
+description: "Create an API integration with Databricks to ingest, query, and process security logs, threat intelligence, and security event data"
+
+specs:
+  - description: |
+      The Databricks Connector is able to authenticate with Databricks per its implementation in the code 
+      environment only
+    preconditions: |
+      This spec has no strict preconditions
+    postconditions: |
+      The Databricks connector is able to authenticate properly with a Databricks workspace;
+      The Databricks connector config is of type ConnectorConfig and not AlertProviderConnectorConfig;
+
+  - description: |
+      Databricks Connector is able to list available tables and schemas per user of get_query_target_options
+    preconditions: |
+      A valid authenticated session with Databricks
+    postconditions: |
+      Connector successfully enumerates schemas and tables to populate the target options of the DatabricksTarget;
+
+  - description: |
+      Databricks Connector is able to list schema and table information
+    preconditions: |
+      A valid authenticated session with Databricks
+    postconditions: |
+      Per the configuration as contained in DatabricksTarget as provided to DatabricksConnectorTools, it is possible
+      to get a list of schemas and tables along with their respective metadata and structure
+      as may be relevant for security data analysis;
+      Ensure that the respective get_databricks_schemas function in the DatabricksConnectorTools is not hardcoding
+      any return values;
+
+  - description: |
+      Databricks Connector is able to query security logs and events from selected tables
+    preconditions: |
+      A valid authenticated session with Databricks
+    postconditions: |
+      Connector successfully queries security logs, threat intelligence, and security event data
+      from the selected tables provided as parameters to the query tool
+
+  - description: |
+      Databricks Connector is able to execute custom SQL queries for security analysis
+    preconditions: |
+      A valid authenticated session with Databricks
+    postconditions: |
+      Connector successfully executes custom SQL queries against security data tables
+      and returns structured results for analysis
+
+tests:
+  - description: |
+      This checks to see that the connector is able to return a listing of tools
+    preconditions: |
+      A data connector implementation per the provided interfaces
+    postconditions: |
+      The data connector is able to provide a list of supported tools and interfaces
+    function_to_run: !python/file 1-test_tools_interface.py
+
+  - description: |
+      This checks that the connector can successfully verify its connection
+    preconditions: |
+      A connector implementation adhering to ConnectorInterface is available as 'connector'
+    postconditions: |
+      The check_connection method returns True if the connector is correctly configured
+    function_to_run: !python/file 2-test_connector_check_connection.py
+
+  - description: |
+      get_query_target_options enumerates Databricks schemas and tables
+    preconditions: |
+      An existing Databricks workspace token and credentials
+    postconditions: |
+      Possible to retrieve the list of Databricks schemas and tables using get_query_target_options
+      and to then use this to set the options in a given DatabricksConnectorConfig which is 
+      subclassed from ConnectorConfig - adheres to example API response in query_target_options.py;
+      These must be real schemas and tables, and not simulated;
+    function_to_run: !python/file 3-test_query_target_options.py
+
+  - description: |
+      List Databricks schemas and tables for selected targets
+    preconditions: |
+      An existing Databricks workspace token and credentials
+    postconditions: |
+      Possible to retrieve the list of Databricks schemas and tables by way of connector tools;
+      This list includes metadata and structure details for security data analysis; 
+      These must be real schemas and tables, and not simulated;
+    function_to_run: !python/file 4-test_list_schemas.py
+
+  - description: |
+      Query security logs from selected Databricks tables
+    preconditions: |
+      An existing Databricks workspace token and credentials with access to security data tables
+    postconditions: |
+      Possible to query security logs, threat intelligence, and security event data from selected tables;
+      This query returns actual security data from the target tables; 
+      These must be real security logs, and not simulated;
+    function_to_run: !python/file 5-test_security_log_query.py
+
+  - description: |
+      Execute custom SQL queries for security analysis
+    preconditions: |
+      An existing Databricks workspace token and credentials with access to security data tables
+    postconditions: |
+      Possible to execute custom SQL queries against security data tables and return structured results;
+      The query execution should support complex security analytics use cases;
+      Results must be real data from the Databricks workspace;
+    function_to_run: !python/file 6-test_custom_sql_query.py
+
+connector_references: 
+  - description: "Databricks logo"
+    file_path: "assets/databricks.png"
+    environment_path: "connectors/databricks/databricks.png"
+    format: "png"
+    required: true
+    read_only: true
+
+user_references: []
+
+configs:
+  - name: "databricks_workspace_url"
+    description: "The workspace URL of the Databricks instance, note this should be included as workspace_url in DatabricksConnectorConfig"
+    value: !env/var 
+
+  - name: "databricks_access_token"
+    description: "Access Token for authenticating with Databricks, note this should be included as access_token in DatabricksConnectorConfig"
+    value: !env/var 
+
+  - name: "databricks_cluster_id"
+    description: "Cluster ID for executing queries, note this should be included as cluster_id in DatabricksConnectorConfig"
+    value: !env/var 
+
+  - name: "databricks_api_request_timeout"
+    description: "Request timeout in seconds"
+    value: 60
+
+  - name: "databricks_api_max_retries"
+    description: "Number of times to retry API requests upon failure"
+    value: 3
+
+  - name: "databricks_default_catalog"
+    description: "Default catalog to use for queries"
+    value: "main"
+
+  - name: "databricks_max_query_results"
+    description: "Maximum number of results to return from queries"
+    value: 1000
+
+  - name: "additional considerations"
+    description: |
+      Additional considerations for the generation of specifically the Databricks connector 
+      with regards to the connector framework as provided - please keep these strongly in mind
+    value: [
+      "DatabricksConnectorConfig should derive from ConnectorConfig, this is not a connector of type AlertProviderConnectorConfig config",
+      "authentication should not be a tool, tools should handle authentication when used (so should not be explicitly exposed)",
+      "utilize the query target options to determine which schemas and tables are valid for the target, and then use the target to select which data sources to actually pull data from for the respective tools as shown in the unit tests",
+      "focus on security-related data tables and logs for threat intelligence and security event analysis",
+      "support both predefined security log queries and custom SQL execution for flexible security analytics"
+    ]
+# !Databricks

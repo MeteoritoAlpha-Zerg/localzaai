@@ -1,0 +1,179 @@
+# Twilio
+name: "twilio"
+category: "SMS"
+description: "Create an API integration with Twilio for sending and retrieving SMS messages"
+
+specs:
+  - description: |
+      The Twilio Connector is able to authenticate with Twilio per its implementation in the code 
+      environment only
+    preconditions: |
+      This spec has no strict preconditions
+    postconditions: |
+      The Twilio connector is able to authenticate properly with Twilio API;
+      The Twilio connector config is of type ConnectorConfig and not AlertProviderConnectorConfig;
+
+  - description: |
+      Twilio Connector is able to list Twilio phone numbers per user of get_query_target_options
+    preconditions: |
+      A valid authenticated session with Twilio
+    postconditions: |
+      Connector successfully enumerates phone numbers to populate the target options of the TwilioTarget;
+
+  - description: |
+      Twilio Connector is able to list phone number information
+    preconditions: |
+      A valid authenticated session with Twilio
+    postconditions: |
+      Per the configuration as contained in TwilioTarget as provided to TwilioConnectorTools, it is possible
+      to get a list of phone numbers along with their respective capabilities and other relevant phone number details
+      as may be relevant;
+      Ensure that the respective get_twilio_phone_numbers function in the TwilioConnectorTools is not hardcoding
+      any return values;
+
+  - description: |
+      Twilio Connector is able to list SMS messages for a selected phone number
+    preconditions: |
+      A valid authenticated session with Twilio
+    postconditions: |
+      Connector successfully lists SMS messages for the selected phone number provided as a param
+      to the list messages tool
+
+  - description: |
+      Twilio Connector is able to send SMS messages from a selected phone number
+    preconditions: |
+      A valid authenticated session with Twilio
+    postconditions: |
+      Connector successfully sends an SMS message from the selected phone number provided as a param
+      to the send message tool
+
+  - description: |
+      Twilio Connector is able to retrieve message details including status and metadata
+    preconditions: |
+      A valid authenticated session with Twilio
+    postconditions: |
+      Connector successfully retrieves detailed message information including delivery status,
+      timestamps, and other metadata for specified messages
+
+tests:
+  - description: |
+      This checks to see that the connector is able to return a listing of tools
+    preconditions: |
+      A data connector implementation per the provided interfaces
+    postconditions: |
+      The data connector is able to provide a list of supported tools and interfaces
+    function_to_run: !python/file 1-test_tools_interface.py
+
+  - description: |
+      This checks that the connector can successfully verify its connection
+    preconditions: |
+      A connector implementation adhering to ConnectorInterface is available as 'connector'
+    postconditions: |
+      The check_connection method returns True if the connector is correctly configured
+    function_to_run: !python/file 2-test_connector_check_connection.py
+
+  - description: |
+      get_query_target_options enumerates Twilio phone numbers
+    preconditions: |
+      An existing Twilio Account SID and Auth Token
+    postconditions: |
+      Possible to retrieve the list of Twilio phone numbers using get_query_target_options
+      and to then use this to set the options in a given TwilioConnectorConfig which is 
+      subclassed from ConnectorConfig - adheres to example API response in query_target_options.py;
+      These must be real phone numbers, and not simulated;
+    function_to_run: !python/file 3-test_query_target_options.py
+
+  - description: |
+      List Twilio phone numbers for selected phone numbers in target
+    preconditions: |
+      An existing Twilio Account SID and Auth Token
+    postconditions: |
+      Possible to retrieve the list of Twilio phone numbers by way of connector tools;
+      This list includes details of the phone numbers to be listed in results; 
+      These must be real phone numbers, and not simulated;
+    function_to_run: !python/file 4-test_list_phone_numbers.py
+
+  - description: |
+      Retrieve SMS messages for selected phone number passed as param
+    preconditions: |
+      An existing Twilio Account SID and Auth Token
+    postconditions: |
+      Possible to retrieve a set of SMS messages for the selected phone number as passed as a param to the connector tools;
+      This list only includes messages of the target phone number to be listed in results; 
+      These must be real messages, and not simulated;
+    function_to_run: !python/file 5-test_message_retrieval.py
+
+  - description: |
+      Send SMS message from selected phone number passed as param
+    preconditions: |
+      An existing Twilio Account SID and Auth Token
+    postconditions: |
+      Possible to send an SMS message from the selected phone number as passed as a param to the connector tools;
+      The message is successfully delivered;
+      This must be a real message send, and not simulated;
+    function_to_run: !python/file 6-test_send_sms.py
+
+  - description: |
+      Retrieve detailed message information including delivery status
+    preconditions: |
+      An existing Twilio Account SID and Auth Token
+    postconditions: |
+      Possible to retrieve complete message details including delivery status, timestamps, and metadata;
+      The details retrieval includes proper parsing of Twilio message structures;
+      This must be real message data, and not simulated;
+    function_to_run: !python/file 7-test_message_details.py
+
+connector_references: 
+  - description: "Twilio logo"
+    file_path: "assets/twilio.png"
+    environment_path: "connectors/twilio/twilio.png"
+    format: "png"
+    required: true
+    read_only: true
+
+user_references: []
+
+configs:
+  - name: "twilio_account_sid"
+    description: "Twilio Account SID for authentication, note this should be included as account_sid in TwilioConnectorConfig"
+    value: !env/var 
+
+  - name: "twilio_auth_token"
+    description: "Twilio Auth Token for authentication, note this should be included as auth_token in TwilioConnectorConfig"
+    value: !env/var 
+
+  - name: "twilio_api_base_url"
+    description: "Twilio API base URL (typically https://api.twilio.com), note this should be included as api_base_url in TwilioConnectorConfig"
+    value: "https://api.twilio.com"
+
+  - name: "twilio_api_version"
+    description: "Twilio API version to use"
+    value: "2010-04-01"
+
+  - name: "twilio_request_timeout"
+    description: "Request timeout in seconds"
+    value: 30
+
+  - name: "twilio_max_retries"
+    description: "Number of times to retry API requests upon failure"
+    value: 3
+
+  - name: "max_messages_per_request"
+    description: "Maximum number of messages to retrieve per request"
+    value: 100
+
+  - name: "additional considerations"
+    description: |
+      Additional considerations for the generation of specifically the Twilio connector 
+      with regards to the connector framework as provided - please keep these strongly in mind
+    value: [
+      "TwilioConnectorConfig should derive from ConnectorConfig, this is not a connector of type AlertProviderConnectorConfig config",
+      "authentication should not be a tool, tools should handle authentication when used (so should not be explicitly exposed)",
+      "utilize the query target options to determine which phone numbers are valid for the target, and then use the target to select which phone numbers to actually pull data from for the respective tools as shown in the unit tests",
+      "Twilio API uses HTTP Basic Authentication with Account SID and Auth Token",
+      "Handle Twilio-specific message statuses (queued, sent, delivered, failed, etc.)",
+      "Support both sending and receiving SMS messages",
+      "Follow Twilio API rate limiting best practices",
+      "Handle webhook configurations for real-time message updates when applicable"
+    ]
+# !Twilio

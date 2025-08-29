@@ -1,0 +1,4 @@
+﻿connector,path,description
+confluence,Eng,"A collection of technical documentation for the engineering team, including architecture overviews, deployment guides, service ownership, and best practices for development and infrastructure"
+confluence,Eng>>Engineering Home>>Metamorph>>Core Library>>Vector Database,"Explains what a vector database is, which vector database we use, how to deploy it locally, usage, and examples for querying and population"
+confluence,Eng>>Engineering Home>>Metamorph,Technical explanations of the main codebase

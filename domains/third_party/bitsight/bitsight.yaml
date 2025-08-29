@@ -1,0 +1,155 @@
+# BitSight
+name: "bitsight"
+category: "Security Ratings & Risk Intelligence"
+description: "Create an API integration with BitSight to fetch cybersecurity risk ratings, security issue insights, and vendor risk intelligence"
+
+specs:
+  - description: |
+      The BitSight Connector is able to authenticate with BitSight per its implementation in the code 
+      environment only
+    preconditions: |
+      This spec has no strict preconditions
+    postconditions: |
+      The BitSight connector is able to authenticate properly with a BitSight instance;
+      The BitSight connector config is of type ConnectorConfig and not AlertProviderConnectorConfig;
+
+  - description: |
+      BitSight Connector is able to list BitSight companies and portfolios per user of get_query_target_options
+    preconditions: |
+      A valid authenticated session with BitSight
+    postconditions: |
+      Connector successfully enumerates companies and portfolios to populate the target options of the BitSightTarget;
+
+  - description: |
+      BitSight Connector is able to retrieve company and portfolio information
+    preconditions: |
+      A valid authenticated session with BitSight
+    postconditions: |
+      Per the configuration as contained in BitSightTarget as provided to BitSightConnectorTools, it is possible
+      to get a list of companies and portfolios along with their respective metadata and other relevant details
+      as may be relevant for security ratings and risk analysis;
+      Ensure that the respective get_bitsight_companies function in the BitSightConnectorTools is not hardcoding
+      any return values;
+
+  - description: |
+      BitSight Connector is able to retrieve security ratings and risk data from selected companies and portfolios
+    preconditions: |
+      A valid authenticated session with BitSight
+    postconditions: |
+      Connector successfully retrieves security ratings and risk data for the selected companies and portfolios provided as params
+      to the ratings tools, supporting cybersecurity risk assessment and vendor risk intelligence
+
+  - description: |
+      BitSight Connector is able to retrieve security issues and findings from BitSight platform
+    preconditions: |
+      A valid authenticated session with BitSight
+    postconditions: |
+      Connector successfully retrieves security issues and findings from BitSight for risk analysis and remediation
+
+tests:
+  - description: |
+      This checks to see that the connector is able to return a listing of tools
+    preconditions: |
+      A data connector implementation per the provided interfaces
+    postconditions: |
+      The data connector is able to provide a list of supported tools and interfaces
+    function_to_run: !python/file 1-test_tools_interface.py
+
+  - description: |
+      This checks that the connector can successfully verify its connection
+    preconditions: |
+      A connector implementation adhering to ConnectorInterface is available as 'connector'
+    postconditions: |
+      The check_connection method returns True if the connector is correctly configured
+    function_to_run: !python/file 2-test_connector_check_connection.py
+
+  - description: |
+      get_query_target_options enumerates BitSight companies and portfolios
+    preconditions: |
+      An existing BitSight instance with valid API credentials
+    postconditions: |
+      Possible to retrieve the list of BitSight companies and portfolios using get_query_target_options
+      and to then use this to set the options in a given BitSightConnectorConfig which is 
+      subclassed from ConnectorConfig - adheres to example API response in query_target_options.py;
+      These must be real companies and portfolios, and not simulated;
+    function_to_run: !python/file 3-test_query_target_options.py
+
+  - description: |
+      List BitSight companies and portfolios for selected targets
+    preconditions: |
+      An existing BitSight instance with valid API credentials
+    postconditions: |
+      Possible to retrieve the list of BitSight companies and portfolios by way of connector tools;
+      This list includes details of the companies and portfolios including metadata and ratings; 
+      These must be real companies and portfolios, and not simulated;
+    function_to_run: !python/file 4-test_list_companies.py
+
+  - description: |
+      Retrieve security ratings and risk data from selected BitSight companies and portfolios
+    preconditions: |
+      An existing BitSight instance with valid API credentials
+    postconditions: |
+      Possible to retrieve security ratings and risk data from the selected BitSight companies and portfolios as passed as params to the connector tools;
+      This includes security ratings and risk intelligence for analysis; 
+      These must be real ratings and risk data, and not simulated;
+    function_to_run: !python/file 5-test_security_ratings.py
+
+  - description: |
+      Retrieve security issues and findings from BitSight platform
+    preconditions: |
+      An existing BitSight instance with valid API credentials
+    postconditions: |
+      Possible to retrieve security issues and findings from BitSight platform;
+      This includes security vulnerabilities and risk findings for analysis and remediation; 
+      These must be real security issues and findings, and not simulated;
+    function_to_run: !python/file 6-test_security_issues.py
+
+connector_references: 
+  - description: "BitSight logo"
+    file_path: "assets/bitsight.png"
+    environment_path: "connectors/bitsight/bitsight.png"
+    format: "png"
+    required: true
+    read_only: true
+
+user_references: []
+
+configs:
+  - name: "bitsight_url"
+    description: "The base URL of the BitSight API (typically https://api.bitsighttech.com), note this should be included as url in BitSightConnectorConfig"
+    value: !env/var 
+
+  - name: "bitsight_api_token"
+    description: "API token for authenticating with BitSight API, note this should be included as api_token in BitSightConnectorConfig"
+    value: !env/var 
+
+  - name: "bitsight_api_request_timeout"
+    description: "Request timeout in seconds"
+    value: 120
+
+  - name: "bitsight_api_max_retries"
+    description: "Number of times to retry API requests upon failure"
+    value: 3
+
+  - name: "bitsight_verify_ssl"
+    description: "Whether to verify SSL certificates"
+    value: true
+
+  - name: "bitsight_max_results"
+    description: "Maximum number of results to return per API call"
+    value: 1000
+
+  - name: "additional considerations"
+    description: |
+      Additional considerations for the generation of specifically the BitSight connector 
+      with regards to the connector framework as provided - please keep these strongly in mind
+    value: [
+      "BitSightConnectorConfig should derive from ConnectorConfig, this is not a connector of type AlertProviderConnectorConfig config",
+      "authentication should not be a tool, tools should handle authentication when used (so should not be explicitly exposed)",
+      "utilize the query target options to determine which companies and portfolios are valid for the target, and then use the target to select which companies and portfolios to actually pull data from for the respective tools as shown in the unit tests",
+      "support BitSight's API token authentication method",
+      "handle rate limiting appropriately for BitSight API constraints",
+      "support BitSight's security rating methodology and risk vector analysis",
+      "integrate with BitSight's vendor risk management and portfolio capabilities"
+    ]
+# !BitSight

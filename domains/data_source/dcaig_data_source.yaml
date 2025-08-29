@@ -1,0 +1,10 @@
+# DCAIG Data Source Connectors
+
+- !include snowflake/snowflake.yaml
+- !include cisa/cisa.yaml
+- !include stix_taxii/stix_taxii.yaml
+- !include threatconnect/threatconnect.yaml
+- !include recorded_future/recorded_future.yaml
+- !include elastic/elastic.yaml
+- !include databricks/databricks.yaml
+- !include misp/misp.yaml

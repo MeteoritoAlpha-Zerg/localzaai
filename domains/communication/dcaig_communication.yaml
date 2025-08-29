@@ -1,0 +1,12 @@
+# DCAIG Communication Connectors
+
+- !include slack/slack.yaml
+- !include gmail/gmail.yaml
+- !include discord/discord.yaml
+- !include microsoft_teams/microsoft_teams.yaml
+- !include smtp_email/smtp_email.yaml
+- !include twilio/twilio.yaml
+- !include signal/signal.yaml
+- !include whatsapp/whatsapp.yaml
+
+

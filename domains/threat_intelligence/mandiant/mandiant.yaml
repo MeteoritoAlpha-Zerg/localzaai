@@ -1,0 +1,159 @@
+# Mandiant
+name: "mandiant"
+category: "Threat Intelligence & Incident Response"
+description: "Create an API integration with Google Mandiant to ingest, analyze, and process cyber threat intelligence, adversary tactics, and security incident insights"
+
+specs:
+  - description: |
+      The Mandiant Connector is able to authenticate with Mandiant per its implementation in the code 
+      environment only
+    preconditions: |
+      This spec has no strict preconditions
+    postconditions: |
+      The Mandiant connector is able to authenticate properly with a Mandiant instance;
+      The Mandiant connector config is of type ConnectorConfig and not AlertProviderConnectorConfig;
+
+  - description: |
+      Mandiant Connector is able to list Mandiant threat actors and campaigns per user of get_query_target_options
+    preconditions: |
+      A valid authenticated session with Mandiant
+    postconditions: |
+      Connector successfully enumerates threat actors and campaigns to populate the target options of the MandiantTarget;
+
+  - description: |
+      Mandiant Connector is able to retrieve threat actor and campaign information
+    preconditions: |
+      A valid authenticated session with Mandiant
+    postconditions: |
+      Per the configuration as contained in MandiantTarget as provided to MandiantConnectorTools, it is possible
+      to get a list of threat actors and campaigns along with their respective metadata and other relevant details
+      as may be relevant for threat intelligence and incident response analysis;
+      Ensure that the respective get_mandiant_threat_actors function in the MandiantConnectorTools is not hardcoding
+      any return values;
+
+  - description: |
+      Mandiant Connector is able to retrieve indicators and threat intelligence from selected threat actors and campaigns
+    preconditions: |
+      A valid authenticated session with Mandiant
+    postconditions: |
+      Connector successfully retrieves indicators and threat intelligence for the selected threat actors and campaigns provided as params
+      to the intelligence tools, supporting cyber threat analysis and incident response
+
+  - description: |
+      Mandiant Connector is able to retrieve malware families and attack patterns from Mandiant platform
+    preconditions: |
+      A valid authenticated session with Mandiant
+    postconditions: |
+      Connector successfully retrieves malware families and attack patterns from Mandiant for threat analysis and defense
+
+tests:
+  - description: |
+      This checks to see that the connector is able to return a listing of tools
+    preconditions: |
+      A data connector implementation per the provided interfaces
+    postconditions: |
+      The data connector is able to provide a list of supported tools and interfaces
+    function_to_run: !python/file 1-test_tools_interface.py
+
+  - description: |
+      This checks that the connector can successfully verify its connection
+    preconditions: |
+      A connector implementation adhering to ConnectorInterface is available as 'connector'
+    postconditions: |
+      The check_connection method returns True if the connector is correctly configured
+    function_to_run: !python/file 2-test_connector_check_connection.py
+
+  - description: |
+      get_query_target_options enumerates Mandiant threat actors and campaigns
+    preconditions: |
+      An existing Mandiant instance with valid API credentials
+    postconditions: |
+      Possible to retrieve the list of Mandiant threat actors and campaigns using get_query_target_options
+      and to then use this to set the options in a given MandiantConnectorConfig which is 
+      subclassed from ConnectorConfig - adheres to example API response in query_target_options.py;
+      These must be real threat actors and campaigns, and not simulated;
+    function_to_run: !python/file 3-test_query_target_options.py
+
+  - description: |
+      List Mandiant threat actors and campaigns for selected targets
+    preconditions: |
+      An existing Mandiant instance with valid API credentials
+    postconditions: |
+      Possible to retrieve the list of Mandiant threat actors and campaigns by way of connector tools;
+      This list includes details of the threat actors and campaigns including metadata and TTPs; 
+      These must be real threat actors and campaigns, and not simulated;
+    function_to_run: !python/file 4-test_list_threat_actors.py
+
+  - description: |
+      Retrieve indicators and threat intelligence from selected Mandiant threat actors and campaigns
+    preconditions: |
+      An existing Mandiant instance with valid API credentials
+    postconditions: |
+      Possible to retrieve indicators and threat intelligence from the selected Mandiant threat actors and campaigns as passed as params to the connector tools;
+      This includes IOCs and threat intelligence data for analysis; 
+      These must be real indicators and intelligence, and not simulated;
+    function_to_run: !python/file 5-test_threat_intelligence.py
+
+  - description: |
+      Retrieve malware families and attack patterns from Mandiant platform
+    preconditions: |
+      An existing Mandiant instance with valid API credentials
+    postconditions: |
+      Possible to retrieve malware families and attack patterns from Mandiant platform;
+      This includes malware data and MITRE ATT&CK techniques for analysis and defense; 
+      These must be real malware families and attack patterns, and not simulated;
+    function_to_run: !python/file 6-test_malware_attacks.py
+
+connector_references: 
+  - description: "Mandiant logo"
+    file_path: "assets/mandiant.png"
+    environment_path: "connectors/mandiant/mandiant.png"
+    format: "png"
+    required: true
+    read_only: true
+
+user_references: []
+
+configs:
+  - name: "mandiant_url"
+    description: "The base URL of the Mandiant API (typically https://api.intelligence.fireeye.com), note this should be included as url in MandiantConnectorConfig"
+    value: !env/var 
+
+  - name: "mandiant_api_key"
+    description: "API key for authenticating with Mandiant API, note this should be included as api_key in MandiantConnectorConfig"
+    value: !env/var 
+
+  - name: "mandiant_secret_key"
+    description: "Secret key for authenticating with Mandiant API, note this should be included as secret_key in MandiantConnectorConfig"
+    value: !env/var
+
+  - name: "mandiant_api_request_timeout"
+    description: "Request timeout in seconds"
+    value: 120
+
+  - name: "mandiant_api_max_retries"
+    description: "Number of times to retry API requests upon failure"
+    value: 3
+
+  - name: "mandiant_verify_ssl"
+    description: "Whether to verify SSL certificates"
+    value: true
+
+  - name: "mandiant_max_results"
+    description: "Maximum number of results to return per API call"
+    value: 1000
+
+  - name: "additional considerations"
+    description: |
+      Additional considerations for the generation of specifically the Mandiant connector 
+      with regards to the connector framework as provided - please keep these strongly in mind
+    value: [
+      "MandiantConnectorConfig should derive from ConnectorConfig, this is not a connector of type AlertProviderConnectorConfig config",
+      "authentication should not be a tool, tools should handle authentication when used (so should not be explicitly exposed)",
+      "utilize the query target options to determine which threat actors and campaigns are valid for the target, and then use the target to select which threat actors and campaigns to actually pull data from for the respective tools as shown in the unit tests",
+      "support Mandiant's API key and secret key authentication method",
+      "handle rate limiting appropriately for Mandiant API constraints",
+      "support Mandiant's threat intelligence taxonomy and MITRE ATT&CK framework integration",
+      "integrate with Mandiant's incident response and threat hunting capabilities"
+    ]
+# !Mandiant

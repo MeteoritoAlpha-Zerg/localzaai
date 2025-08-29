@@ -1,0 +1,182 @@
+# Key Caliber
+name: "keycaliber"
+category: "Cyber Risk Intelligence, Asset Criticality, and Business Impact Analysis"
+description: "Create an API integration with Key Caliber to ingest, analyze, and process cybersecurity risk intelligence, asset prioritization data, and security posture assessments."
+
+specs:
+  - description: |
+      The Key Caliber Connector is able to authenticate with Key Caliber per its implementation in the code 
+      environment only
+    preconditions: |
+      This spec has no strict preconditions
+    postconditions: |
+      The Key Caliber connector is able to authenticate properly with a Key Caliber instance;
+      The Key Caliber connector config is of type ConnectorConfig and not AlertProviderConnectorConfig;
+
+  - description: |
+      Key Caliber Connector is able to list asset criticality data per user of get_query_target_options
+    preconditions: |
+      A valid authenticated session with Key Caliber
+    postconditions: |
+      Connector successfully enumerates assets to populate the target options of the KeyCaliberTarget;
+
+  - description: |
+      Key Caliber Connector is able to retrieve asset criticality and prioritization data
+    preconditions: |
+      A valid authenticated session with Key Caliber
+    postconditions: |
+      Per the configuration as contained in KeyCaliberTarget as provided to KeyCaliberConnectorTools, it is possible
+      to get asset risk scores and criticality data with relevant asset prioritization details
+      as may be relevant;
+      Ensure that the respective get_asset_prioritization function in the KeyCaliberConnectorTools is not hardcoding
+      any return values;
+
+  - description: |
+      Key Caliber Connector is able to fetch business impact assessments for cybersecurity events
+    preconditions: |
+      A valid authenticated session with Key Caliber
+    postconditions: |
+      Connector successfully retrieves business impact assessment reports provided as a param
+      to the get business impact assessments tool
+
+  - description: |
+      Key Caliber Connector is able to retrieve security posture scores for enterprise assets
+    preconditions: |
+      A valid authenticated session with Key Caliber
+    postconditions: |
+      Connector successfully retrieves security posture insights provided as a param
+      to the get security posture scores tool
+
+  - description: |
+      Key Caliber Connector is able to compare risk scores across different business units or asset groups
+    preconditions: |
+      A valid authenticated session with Key Caliber
+    postconditions: |
+      Connector successfully retrieves comparative risk scores provided as a param
+      to the compare risk scores tool
+
+  - description: |
+      Key Caliber Connector handles API rate limiting and retries requests when necessary
+    preconditions: |
+      A valid Key Caliber API connection
+    postconditions: |
+      Connector gracefully manages rate-limiting responses and implements proper retry logic
+
+tests:
+  - description: |
+      This checks to see that the connector is able to return a listing of tools
+    preconditions: |
+      A data connector implementation per the provided interfaces
+    postconditions: |
+      The data connector is able to provide a list of supported tools and interfaces
+    function_to_run: !python/file 1-test_tools_interface.py
+
+  - description: |
+      This checks that the connector can successfully verify its connection
+    preconditions: |
+      A connector implementation adhering to ConnectorInterface is available as 'connector'
+    postconditions: |
+      The check_connection method returns True if the connector is correctly configured
+    function_to_run: !python/file 2-test_connector_check_connection.py
+
+  - description: |
+      get_query_target_options enumerates Key Caliber assets
+    preconditions: |
+      An existing Key Caliber API key and valid instance
+    postconditions: |
+      Possible to retrieve the list of Key Caliber assets using get_query_target_options
+      and to then use this to set the options in a given KeyCaliberConnectorConfig which is 
+      subclassed from ConnectorConfig - adheres to example API response in query_target_options.py;
+      These must be real assets, and not simulated;
+    function_to_run: !python/file 3-test_query_target_options.py
+
+  - description: |
+      Retrieve asset criticality and prioritization data for selected assets in target
+    preconditions: |
+      An existing Key Caliber API key and valid instance
+    postconditions: |
+      Possible to retrieve asset risk scores and criticality data by way of connector tools;
+      This list includes details of the asset prioritization data to be listed in results; 
+      These must be real asset prioritization data, and not simulated;
+    function_to_run: !python/file 4-test_asset_prioritization_retrieval.py
+
+  - description: |
+      Retrieve business impact assessments for cybersecurity events passed as param
+    preconditions: |
+      An existing Key Caliber API key and valid instance
+    postconditions: |
+      Possible to retrieve business impact assessment reports as passed as a param to the connector tools;
+      This data includes details of the business impact assessments to be listed in results; 
+      These must be real business impact data, and not simulated;
+    function_to_run: !python/file 5-test_business_impact_retrieval.py
+
+  - description: |
+      Retrieve security posture scores for enterprise assets passed as param
+    preconditions: |
+      An existing Key Caliber API key and valid instance
+    postconditions: |
+      Possible to retrieve security posture insights as passed as a param to the connector tools;
+      This data includes details of the security posture scores to be listed in results; 
+      These must be real security posture data, and not simulated;
+    function_to_run: !python/file 6-test_security_posture_retrieval.py
+
+  - description: |
+      Compare risk scores across business units or asset groups passed as param
+    preconditions: |
+      An existing Key Caliber API key and valid instance
+    postconditions: |
+      Possible to retrieve comparative risk scores as passed as a param to the connector tools;
+      This data includes details of the comparative risk analysis to be listed in results; 
+      These must be real comparative risk data, and not simulated;
+    function_to_run: !python/file 7-test_risk_comparison_retrieval.py
+
+connector_references: 
+  - description: "Key Caliber PNG logo"
+    file_path: "assets/keycaliber.png"
+    environment_path: "connectors/keycaliber/keycaliber.png"
+    format: "png"
+    required: true
+    read_only: true
+
+user_references: []
+
+configs:
+  - name: "keycaliber_host"
+    description: "Key Caliber API endpoint, note this should be included as host in KeyCaliberConnectorConfig"
+    value: !env/var 
+
+  - name: "keycaliber_api_key"
+    description: "Key Caliber API authentication key, note this should be included as api_key in KeyCaliberConnectorConfig"
+    value: !env/var 
+
+  - name: "keycaliber_api_request_timeout"
+    description: "Request timeout in seconds"
+    value: 30
+
+  - name: "keycaliber_api_max_retries"
+    description: "Number of times to retry failed requests"
+    value: 3
+
+  - name: "keycaliber_log_errors"
+    description: "Enable error logging for debugging purposes"
+    value: true
+
+  - name: "additional considerations"
+    description: |
+      Additional considerations for the generation of specifically the Key Caliber connector 
+      with regards to the connector framework as provided - please keep these strongly in mind
+    value: [
+      "KeyCaliberConnectorConfig should derive from ConnectorConfig, this is not a connector of type AlertProviderConnectorConfig config",
+      "authentication should not be a tool, tools should handle authentication when used (so should not be explicitly exposed)",
+      "utilize the query target options to determine which assets are valid for the target, and then use the target to select which assets to actually pull data from for the respective tools as shown in the unit tests",
+      "handle Key Caliber's specific API requirements including authentication headers and response formats",
+      "implement proper error handling for Key Caliber-specific error responses",
+      "handle API rate limiting according to Key Caliber guidelines with exponential backoff",
+      "consider the cybersecurity-focused nature of the data and implement appropriate security measures",
+      "support different types of risk assessments and asset categorizations",
+      "handle large datasets efficiently with proper pagination if available",
+      "implement comprehensive logging for security audit purposes",
+      "ensure data integrity and validation for critical security metrics",
+      "consider real-time vs batch processing requirements for risk intelligence data"
+    ]
+# !Key Caliber

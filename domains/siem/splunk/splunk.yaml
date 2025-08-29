@@ -1,0 +1,185 @@
+# Splunk
+name: "splunk"
+category: "Log Analytics"
+description: "Create an API integration with Splunk for log ingestion and search queries"
+
+specs:
+  - description: |
+      The Splunk Connector is able to authenticate with Splunk REST API per its implementation in the code 
+      environment only
+    preconditions: |
+      This spec has no strict preconditions
+    postconditions: |
+      The Splunk connector is able to authenticate properly with the Splunk REST API;
+      The Splunk connector config is of type ConnectorConfig and not AlertProviderConnectorConfig;
+
+  - description: |
+      Splunk Connector is able to list available indexes and apps per user of get_query_target_options
+    preconditions: |
+      A valid authenticated session with Splunk REST API
+    postconditions: |
+      Connector successfully enumerates indexes and apps to populate the target options of the SplunkTarget;
+
+  - description: |
+      Splunk Connector is able to list index information and apps
+    preconditions: |
+      A valid authenticated session with Splunk REST API
+    postconditions: |
+      Per the configuration as contained in SplunkTarget as provided to SplunkConnectorTools, it is possible
+      to get a list of indexes and apps along with their respective metadata and data ingestion information
+      as may be relevant for log analytics;
+      Ensure that the respective get_splunk_indexes function in the SplunkConnectorTools is not hardcoding
+      any return values;
+
+  - description: |
+      Splunk Connector is able to execute search queries against selected indexes
+    preconditions: |
+      A valid authenticated session with Splunk REST API
+    postconditions: |
+      Connector successfully executes SPL (Search Processing Language) queries and retrieves log data
+      from the selected indexes provided as parameters to the query tool
+
+  - description: |
+      Splunk Connector is able to perform log ingestion and data forwarding
+    preconditions: |
+      A valid authenticated session with Splunk REST API
+    postconditions: |
+      Connector successfully ingests log data through HTTP Event Collector (HEC) and performs data forwarding
+      for comprehensive log management and real-time analysis
+
+tests:
+  - description: |
+      This checks to see that the connector is able to return a listing of tools
+    preconditions: |
+      A data connector implementation per the provided interfaces
+    postconditions: |
+      The data connector is able to provide a list of supported tools and interfaces
+    function_to_run: !python/file 1-test_tools_interface.py
+
+  - description: |
+      This checks that the connector can successfully verify its connection
+    preconditions: |
+      A connector implementation adhering to ConnectorInterface is available as 'connector'
+    postconditions: |
+      The check_connection method returns True if the connector is correctly configured
+    function_to_run: !python/file 2-test_connector_check_connection.py
+
+  - description: |
+      get_query_target_options enumerates Splunk indexes and apps
+    preconditions: |
+      An existing Splunk username and password or authentication token
+    postconditions: |
+      Possible to retrieve the list of Splunk indexes and apps using get_query_target_options
+      and to then use this to set the options in a given SplunkConnectorConfig which is 
+      subclassed from ConnectorConfig - adheres to example API response in query_target_options.py;
+      These must be real indexes and apps, and not simulated;
+    function_to_run: !python/file 3-test_query_target_options.py
+
+  - description: |
+      List Splunk indexes for selected targets
+    preconditions: |
+      An existing Splunk username and password or authentication token
+    postconditions: |
+      Possible to retrieve the list of Splunk indexes by way of connector tools;
+      This list includes metadata and data ingestion information for log analytics; 
+      These must be real indexes, and not simulated;
+    function_to_run: !python/file 4-test_list_indexes.py
+
+  - description: |
+      Execute search queries against selected Splunk indexes
+    preconditions: |
+      An existing Splunk username and password or authentication token with search permissions
+    postconditions: |
+      Possible to execute SPL search queries and retrieve log data from selected indexes;
+      This query returns actual search results from the target indexes; 
+      These must be real search results, and not simulated;
+    function_to_run: !python/file 5-test_search_queries.py
+
+  - description: |
+      Perform log ingestion through HTTP Event Collector
+    preconditions: |
+      An existing Splunk HEC token with ingestion permissions
+    postconditions: |
+      Possible to ingest log data through HTTP Event Collector and perform data forwarding;
+      The ingestion should support real-time log management use cases;
+      Results must demonstrate actual log ingestion capabilities;
+    function_to_run: !python/file 6-test_log_ingestion.py
+
+connector_references: 
+  - description: "Splunk logo"
+    file_path: "assets/splunk.png"
+    environment_path: "connectors/splunk/splunk.png"
+    format: "png"
+    required: true
+    read_only: true
+
+user_references: []
+
+configs:
+  - name: "splunk_host"
+    description: "Splunk server hostname or IP address, note this should be included as host in SplunkConnectorConfig"
+    value: !env/var 
+
+  - name: "splunk_port"
+    description: "Splunk management port (default: 8089), note this should be included as port in SplunkConnectorConfig"
+    value: "8089"
+
+  - name: "splunk_username"
+    description: "Username for authenticating with Splunk, note this should be included as username in SplunkConnectorConfig"
+    value: !env/var 
+
+  - name: "splunk_password"
+    description: "Password for authenticating with Splunk, note this should be included as password in SplunkConnectorConfig"
+    value: !env/var 
+
+  - name: "splunk_hec_token"
+    description: "HTTP Event Collector token for log ingestion, note this should be included as hec_token in SplunkConnectorConfig"
+    value: !env/var 
+
+  - name: "splunk_hec_port"
+    description: "HTTP Event Collector port (default: 8088)"
+    value: "8088"
+
+  - name: "splunk_use_ssl"
+    description: "Whether to use SSL/TLS for connections"
+    value: true
+
+  - name: "splunk_verify_ssl"
+    description: "Whether to verify SSL certificates"
+    value: true
+
+  - name: "splunk_api_request_timeout"
+    description: "Request timeout in seconds"
+    value: 60
+
+  - name: "splunk_api_max_retries"
+    description: "Number of times to retry API requests upon failure"
+    value: 3
+
+  - name: "splunk_max_search_results"
+    description: "Maximum number of search results to retrieve per query"
+    value: 10000
+
+  - name: "splunk_search_timeout"
+    description: "Search query timeout in seconds"
+    value: 300
+
+  - name: "splunk_ingestion_batch_size"
+    description: "Batch size for log ingestion operations"
+    value: 1000
+
+  - name: "additional considerations"
+    description: |
+      Additional considerations for the generation of specifically the Splunk connector 
+      with regards to the connector framework as provided - please keep these strongly in mind
+    value: [
+      "SplunkConnectorConfig should derive from ConnectorConfig, this is not a connector of type AlertProviderConnectorConfig config",
+      "authentication should not be a tool, tools should handle authentication when used (so should not be explicitly exposed)",
+      "utilize the query target options to determine which indexes and apps are valid for the target, and then use the target to select which data sources to actually pull data from for the respective tools as shown in the unit tests",
+      "focus on log ingestion, SPL search queries, and data forwarding capabilities",
+      "support Splunk Processing Language (SPL) for flexible log analysis and data manipulation",
+      "handle both real-time search and historical data search operations",
+      "include index management and HTTP Event Collector (HEC) configuration for comprehensive log analytics",
+      "support time-based queries and statistical operations for operational intelligence"
+    ]
+# !Splunk

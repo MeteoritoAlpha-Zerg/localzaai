@@ -1,0 +1,216 @@
+# ThreatQuotient Connector
+name: "threatq"
+category: "Threat Intelligence"
+description: "Create an API integration with ThreatQuotient's ThreatQ threat intelligence platform per its API specification"
+
+specs:
+- description: |
+    The ThreatQ Connector is able to authenticate with ThreatQ per its implementation in the code
+    environment only
+  preconditions: |
+    This spec has no strict preconditions
+  postconditions: |
+    The ThreatQ connector is able to authenticate properly with a ThreatQ instance;
+    The ThreatQ connector config is of type ConnectorConfig and not AlertProviderConnectorConfig;
+
+- description: |
+    ThreatQ Connector is able to query and retrieve indicators from the threat library
+  preconditions: |
+    A valid authenticated session with ThreatQ
+  postconditions: |
+    Connector successfully retrieves threat indicators from ThreatQ;
+    Response includes appropriate indicator metadata such as type, status, and attributes;
+
+- description: |
+    ThreatQ Connector is able to query and retrieve adversary data
+  preconditions: |
+    A valid authenticated session with ThreatQ
+  postconditions: |
+    Connector successfully retrieves adversary information;
+    Response includes appropriate adversary metadata and relationships;
+
+- description: |
+    ThreatQ Connector is able to add new indicators to the threat library
+  preconditions: |
+    A valid authenticated session with ThreatQ with appropriate write permissions
+  postconditions: |
+    Connector successfully adds new indicators to the ThreatQ threat library;
+    Added indicators include appropriate metadata and attributes;
+
+- description: |
+    ThreatQ Connector is able to update existing indicators in the threat library
+  preconditions: |
+    A valid authenticated session with ThreatQ with appropriate write permissions
+  postconditions: |
+    Connector successfully updates existing indicators in the ThreatQ threat library;
+    Updates can modify attributes, status, and other relevant metadata;
+
+- description: |
+    ThreatQ Connector is able to query and retrieve event data
+  preconditions: |
+    A valid authenticated session with ThreatQ
+  postconditions: |
+    Connector successfully retrieves event information;
+    Response includes appropriate event details and relationships;
+
+- description: |
+    ThreatQ Connector is able to search across multiple object types
+  preconditions: |
+    A valid authenticated session with ThreatQ
+  postconditions: |
+    Connector successfully searches across indicators, adversaries, and events;
+    Response includes properly categorized results with appropriate metadata;
+
+- description: |
+    ThreatQ Connector implements proper pagination and filtering
+  preconditions: |
+    A valid authenticated session with ThreatQ
+  postconditions: |
+    Connector properly implements pagination for API endpoints that support it;
+    Connector supports filtering results by various criteria including type, status, and score;
+
+tests:
+- description: |
+    This checks to see that the connector is able to return a listing of tools
+  preconditions: |
+    A data connector implementation per the provided interfaces
+  postconditions: |
+    The data connector is able to provide a list of supported tools and interfaces
+  function_to_run: !python/file 1-test_tools_interface.py
+
+- description: |
+    This checks that the connector can successfully verify its connection
+  preconditions: |
+    A connector implementation adhering to ConnectorInterface is available as 'connector'
+  postconditions: |
+    The check_connection method returns True if the connector is correctly configured
+  function_to_run: !python/file 2-test_connector_check_connection.py
+
+- description: |
+    Test retrieving indicators from the threat library with filtering
+  preconditions: |
+    An existing ThreatQ API token and credentials
+  postconditions: |
+    Connector successfully retrieves indicators with specified filters;
+    Response includes appropriate indicator metadata and attributes;
+  function_to_run: !python/file 3-test_indicator_retrieval.py
+
+- description: |
+    Test retrieving adversary information
+  preconditions: |
+    An existing ThreatQ API token and credentials
+  postconditions: |
+    Connector successfully retrieves adversary information;
+    Response includes appropriate adversary details and relationships;
+  function_to_run: !python/file 4-test_adversary_retrieval.py
+
+- description: |
+    Test adding new indicators to the threat library
+  preconditions: |
+    An existing ThreatQ API token and credentials with write permissions
+  postconditions: |
+    Connector successfully adds new indicators to the threat library;
+    Added indicators include specified attributes and metadata;
+  function_to_run: !python/file 5-test_indicator_creation.py
+
+- description: |
+    Test updating existing indicators in the threat library
+  preconditions: |
+    An existing ThreatQ API token and credentials with write permissions
+  postconditions: |
+    Connector successfully updates existing indicators;
+    Updates correctly modify specified attributes and metadata;
+  function_to_run: !python/file 6-test_indicator_update.py
+
+- description: |
+    Test retrieving event information
+  preconditions: |
+    An existing ThreatQ API token and credentials
+  postconditions: |
+    Connector successfully retrieves event information;
+    Response includes appropriate event details and relationships;
+  function_to_run: !python/file 7-test_event_retrieval.py
+
+- description: |
+    Test searching across multiple object types
+  preconditions: |
+    An existing ThreatQ API token and credentials
+  postconditions: |
+    Connector successfully searches across indicators, adversaries, and events;
+    Response includes properly categorized results;
+  function_to_run: !python/file 8-test_search_functionality.py
+
+connector_references: 
+  - description: "ThreatQ logo"
+    file_path: "assets/threatq.png"
+    environment_path: "connectors/threatq/threatq.png"
+    format: "png"
+    required: true
+    read_only: true
+
+user_references: []
+
+configs:
+- name: "threatq_api_host"
+  description: "The hostname or IP address of your ThreatQ instance (e.g., threatq.example.com)"
+  value: !env/var 
+
+- name: "threatq_api_path"
+  description: "The base path for the ThreatQ API (typically '/api')"
+  value: "/api"
+
+- name: "threatq_username"
+  description: "The username for authenticating with ThreatQ API"
+  value: !env/var 
+
+- name: "threatq_password"
+  description: "The password for authenticating with ThreatQ API"
+  value: !env/var 
+
+- name: "threatq_client_id"
+  description: "The client ID for your ThreatQ deployment (available in config.js)"
+  value: !env/var
+
+- name: "threatq_api_request_timeout"
+  description: "Request timeout in seconds"
+  value: 30
+
+- name: "threatq_api_max_retries"
+  description: "Number of times to retry API requests upon failure"
+  value: 3
+
+- name: "threatq_indicator_min_score"
+  description: "Minimum indicator score for retrieving indicators (0-100)"
+  value: 1
+
+- name: "threatq_indicator_max_score"
+  description: "Maximum indicator score for retrieving indicators (0-100)"
+  value: 100
+
+- name: "threatq_indicator_page_size"
+  description: "Number of indicators to retrieve per page (default and max is typically 100)"
+  value: 100
+
+- name: "threatq_enable_indicator_caching"
+  description: "Enable caching of indicator data to reduce API calls"
+  value: true
+
+- name: "additional considerations"
+  description: |
+    Additional considerations for the generation of specifically the ThreatQ connector 
+    with regards to the connector framework as provided - please keep these strongly in mind
+  value: [
+    "use username, password, and client ID for authentication with the ThreatQ API",
+    "authentication should not be a tool, tools should handle authentication when used (so should not be explicitly exposed)",
+    "implement proper pagination for endpoints that support it",
+    "handle ThreatQ-specific error cases and ensure proper error messages are returned",
+    "support filtering indicators by type, status, score, and other relevant criteria",
+    "implement tools for searching across multiple object types (indicators, adversaries, events)",
+    "support both reading and writing operations for indicators if write permissions are available",
+    "handle various indicator types including IP addresses, domains, hashes, URLs, etc.",
+    "implement proper handling of indicator attributes, tags, and related metadata",
+    "support query operations for adversaries and their relationships to indicators",
+    "implement caching mechanisms to reduce API calls when appropriate",
+    "handle rate limiting and API throttling as needed",
+    "ensure proper handling of JSON data formats as specified in the ThreatQ API"
+  ]

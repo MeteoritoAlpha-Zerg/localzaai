@@ -1,0 +1,163 @@
+# Infoblox
+name: "infoblox"
+category: "DNS Security & Analytics"
+description: "Create an API integration with Infoblox to ingest, analyze, and process DNS security data, threat intelligence, and network security analytics"
+
+specs:
+  - description: |
+      The Infoblox Connector is able to authenticate with Infoblox per its implementation in the code 
+      environment only
+    preconditions: |
+      This spec has no strict preconditions
+    postconditions: |
+      The Infoblox connector is able to authenticate properly with an Infoblox instance;
+      The Infoblox connector config is of type ConnectorConfig and not AlertProviderConnectorConfig;
+
+  - description: |
+      Infoblox Connector is able to list Infoblox networks and DNS views per user of get_query_target_options
+    preconditions: |
+      A valid authenticated session with Infoblox
+    postconditions: |
+      Connector successfully enumerates networks and DNS views to populate the target options of the InfobloxTarget;
+
+  - description: |
+      Infoblox Connector is able to retrieve network and DNS view information
+    preconditions: |
+      A valid authenticated session with Infoblox
+    postconditions: |
+      Per the configuration as contained in InfobloxTarget as provided to InfobloxConnectorTools, it is possible
+      to get a list of networks and DNS views along with their respective metadata and other relevant details
+      as may be relevant for DNS security and network analytics;
+      Ensure that the respective get_infoblox_networks function in the InfobloxConnectorTools is not hardcoding
+      any return values;
+
+  - description: |
+      Infoblox Connector is able to retrieve DNS security data and threat intelligence from selected networks and views
+    preconditions: |
+      A valid authenticated session with Infoblox
+    postconditions: |
+      Connector successfully retrieves DNS security data and threat intelligence for the selected networks and views provided as params
+      to the security tools, supporting DNS security analysis and threat detection
+
+  - description: |
+      Infoblox Connector is able to retrieve network security analytics and threat feeds
+    preconditions: |
+      A valid authenticated session with Infoblox
+    postconditions: |
+      Connector successfully retrieves network security analytics data and threat feed information for security analysis
+
+tests:
+  - description: |
+      This checks to see that the connector is able to return a listing of tools
+    preconditions: |
+      A data connector implementation per the provided interfaces
+    postconditions: |
+      The data connector is able to provide a list of supported tools and interfaces
+    function_to_run: !python/file 1-test_tools_interface.py
+
+  - description: |
+      This checks that the connector can successfully verify its connection
+    preconditions: |
+      A connector implementation adhering to ConnectorInterface is available as 'connector'
+    postconditions: |
+      The check_connection method returns True if the connector is correctly configured
+    function_to_run: !python/file 2-test_connector_check_connection.py
+
+  - description: |
+      get_query_target_options enumerates Infoblox networks and DNS views
+    preconditions: |
+      An existing Infoblox instance with valid API credentials
+    postconditions: |
+      Possible to retrieve the list of Infoblox networks and DNS views using get_query_target_options
+      and to then use this to set the options in a given InfobloxConnectorConfig which is 
+      subclassed from ConnectorConfig - adheres to example API response in query_target_options.py;
+      These must be real networks and DNS views, and not simulated;
+    function_to_run: !python/file 3-test_query_target_options.py
+
+  - description: |
+      List Infoblox networks and DNS views for selected targets
+    preconditions: |
+      An existing Infoblox instance with valid API credentials
+    postconditions: |
+      Possible to retrieve the list of Infoblox networks and DNS views by way of connector tools;
+      This list includes details of the networks and DNS views including metadata and configurations; 
+      These must be real networks and DNS views, and not simulated;
+    function_to_run: !python/file 4-test_list_networks.py
+
+  - description: |
+      Retrieve DNS security data and threat intelligence from selected Infoblox networks and views
+    preconditions: |
+      An existing Infoblox instance with valid API credentials
+    postconditions: |
+      Possible to retrieve DNS security data and threat intelligence from the selected Infoblox networks and views as passed as params to the connector tools;
+      This list includes DNS threat data and security analytics for analysis; 
+      These must be real DNS security events, and not simulated;
+    function_to_run: !python/file 5-test_dns_security.py
+
+  - description: |
+      Retrieve network security analytics and threat feeds from Infoblox
+    preconditions: |
+      An existing Infoblox instance with valid API credentials
+    postconditions: |
+      Possible to retrieve network security analytics and threat feed data from Infoblox;
+      This includes threat intelligence feeds and network analytics for security analysis; 
+      These must be real threat feeds and analytics, and not simulated;
+    function_to_run: !python/file 6-test_threat_feeds.py
+
+connector_references: 
+  - description: "Infoblox logo"
+    file_path: "assets/infoblox.png"
+    environment_path: "connectors/infoblox/infoblox.png"
+    format: "png"
+    required: true
+    read_only: true
+
+user_references: []
+
+configs:
+  - name: "infoblox_url"
+    description: "The base URL of the Infoblox Grid Manager, note this should be included as url in InfobloxConnectorConfig"
+    value: !env/var 
+
+  - name: "infoblox_username"
+    description: "Username for authenticating with Infoblox WAPI, note this should be included as username in InfobloxConnectorConfig"
+    value: !env/var 
+
+  - name: "infoblox_password"
+    description: "Password for authenticating with Infoblox WAPI, note this should be included as password in InfobloxConnectorConfig"
+    value: !env/var
+
+  - name: "infoblox_wapi_version"
+    description: "Infoblox WAPI version to use (e.g., v2.12), note this should be included as wapi_version in InfobloxConnectorConfig"
+    value: !env/var
+
+  - name: "infoblox_api_request_timeout"
+    description: "Request timeout in seconds"
+    value: 30
+
+  - name: "infoblox_api_max_retries"
+    description: "Number of times to retry API requests upon failure"
+    value: 3
+
+  - name: "infoblox_verify_ssl"
+    description: "Whether to verify SSL certificates"
+    value: true
+
+  - name: "infoblox_max_results"
+    description: "Maximum number of results to return per API call"
+    value: 1000
+
+  - name: "additional considerations"
+    description: |
+      Additional considerations for the generation of specifically the Infoblox connector 
+      with regards to the connector framework as provided - please keep these strongly in mind
+    value: [
+      "InfobloxConnectorConfig should derive from ConnectorConfig, this is not a connector of type AlertProviderConnectorConfig config",
+      "authentication should not be a tool, tools should handle authentication when used (so should not be explicitly exposed)",
+      "utilize the query target options to determine which networks and DNS views are valid for the target, and then use the target to select which networks and DNS views to actually pull data from for the respective tools as shown in the unit tests",
+      "support Infoblox WAPI (Web API) authentication using username and password",
+      "handle WAPI versioning appropriately for different Infoblox deployments",
+      "support common Infoblox objects: networks, DNS views, zones, records, and threat protection data",
+      "integrate with Infoblox BloxOne Threat Defense and Advanced DNS Protection features"
+    ]
+# !Infoblox

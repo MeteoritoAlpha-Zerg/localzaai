@@ -1,0 +1,162 @@
+# Confluence
+name: "confluence"
+category: "Knowledge Base"
+description: "Create an API integration with Confluence per its API specification"
+
+specs:
+  - description: |
+      The Confluence Connector is able to authenticate with Confluence per its implementation in the code 
+      environment only
+    preconditions: |
+      This spec has no strict preconditions
+    postconditions: |
+      The Confluence connector is able to authenticate properly with a Confluence instance;
+      The Confluence connector config is of type ConnectorConfig and not AlertProviderConnectorConfig;
+
+  - description: |
+      Confluence Connector is able to list Confluence spaces per user of get_query_target_options
+    preconditions: |
+      A valid authenticated session with Confluence
+    postconditions: |
+      Connector successfully enumerates spaces to populate the target options of the ConfluenceTarget;
+
+  - description: |
+      Confluence Connector is able to list space information
+    preconditions: |
+      A valid authenticated session with Confluence
+    postconditions: |
+      Per the configuration as contained in ConfluenceTarget as provided to ConfluenceConnectorTools, it is possible
+      to get a list of spaces along with their respective description and other relevant space details
+      as may be relevant;
+      Ensure that the respective get_confluence_spaces function in the ConfluenceConnectorTools is not hardcoding
+      any return values;
+
+  - description: |
+      Confluence Connector is able to list pages in a selected space
+    preconditions: |
+      A valid authenticated session with Confluence
+    postconditions: |
+      Connector successfully lists pages for the selected space provided as a param
+      to the list pages tool
+
+  # - description: |
+  #     Confluence Connector is able to retrieve content from an existing Confluence page
+  #   preconditions: |
+  #     A valid authenticated session with Confluence and an existing page ID
+  #   postconditions: |
+  #     Connector successfully retrieves the content of the specified page per its execution in the environment
+
+tests:
+  - description: |
+      This checks to see that the connector is able to return a listing of tools
+    preconditions: |
+      A data connector implementation per the provided interfaces
+    postconditions: |
+      The data connector is able to provide a list of supported tools and interfaces
+    function_to_run: !python/file 1-test_tools_interface.py
+
+  - description: |
+      This checks that the connector can successfully verify its connection
+    preconditions: |
+      A connector implementation adhering to ConnectorInterface is available as 'connector'
+    postconditions: |
+      The check_connection method returns True if the connector is correctly configured
+    function_to_run: !python/file 2-test_connector_check_connection.py
+
+  - description: |
+      get_query_target_options enumerates Confluence spaces
+    preconditions: |
+      An existing Confluence API key and credentials
+    postconditions: |
+      Possible to retrieve the list of Confluence spaces using get_query_target_options
+      and to then use this to set the options in a given ConfluenceConnectorConfig which is 
+      subclassed from ConnectorConfig - adheres to example API response in query_target_options.py;
+      These must be real spaces, and not simulated;
+    function_to_run: !python/file 3-test_query_target_options.py
+
+  - description: |
+      List Confluence spaces for selected Confluence spaces in target
+    preconditions: |
+      An existing Confluence API key and credentials
+    postconditions: |
+      Possible to retrieve the list of Confluence spaces by way of connector tools;
+      This list includes details of the spaces to be listed in results; 
+      These must be real spaces, and not simulated;
+    function_to_run: !python/file 4-test_list_spaces.py
+
+  - description: |
+      Retrieve pages for selected Confluence space passed as param
+    preconditions: |
+      An existing Confluence API key and credentials
+    postconditions: |
+      Possible to retrieve a set of pages for the selected Confluence space as passed as a param to the connector tools;
+      This list only includes pages of the target space to be listed in results; 
+      These must be real pages, and not simulated;
+    function_to_run: !python/file 5-test_page_retrieval.py
+
+  - description: |
+      Retrieve content from Confluence page
+    preconditions: |
+      An existing Confluence API key and credentials
+    postconditions: |
+      Possible to retrieve content from a specific Confluence page by ID;
+      The content must be directly accessed using the page_id parameter;
+      This must be real content from the actual page, and not simulated;
+      Content should be verified to be non-empty and properly structured;
+    function_to_run: !python/file 6-test_page_content_retrieval.py
+
+connector_references: 
+  - description: "Confluence SVG logo"
+    file_path: "assets/confluence.svg"
+    environment_path: "connectors/confluence/confluence.svg"
+    format: "svg"
+    required: true
+    read_only: true
+
+user_references: []
+
+configs:
+  - name: "confluence_url"
+    description: "The base URL of the Confluence instance, note this should be included as url in ConfluenceConnectorConfig"
+    value: !env/var 
+
+  - name: "confluence_api_token"
+    description: "API Token for authenticating with Confluence, note this should be included as api_token in ConfluenceConnectorConfig"
+    value: !env/var 
+
+  - name: "confluence_email"
+    description: "Email address for authenticating with Confluence, note this should be included as email in ConfluenceConnectorConfig"
+    value: !env/var 
+
+  - name: "confluence_api_request_timeout"
+    description: "Request timeout in seconds"
+    value: 30
+
+  - name: "confluence_api_max_retries"
+    description: "Number of times to retry API requests upon failure"
+    value: 3
+
+  - name: "security_content_categories"
+    description: "Categories of security content to identify and extract"
+    value: [
+      "policies", 
+      "procedures", 
+      "guidelines", 
+      "incident_response", 
+      "risk_assessments", 
+      "compliance", 
+      "vulnerability_management"
+    ]
+
+  - name: "additional considerations"
+    description: |
+      Additional considerations for the generation of specifically the Confluence connector 
+      with regards to the connector framework as provided - please keep these strongly in mind
+    value: [
+      "ConfluenceConnectorConfig should derive from ConnectorConfig, this is not a connector of type AlertProviderConnectorConfig config",
+      "authentication should not be a tool, tools should handle authentication when used (so should not be explicitly exposed)",
+      "utilize the query target options to determine which spaces are valid for the target, and then use the target to select which spaces to actually pull data from for the respective tools as shown in the unit tests",
+      "pages in Confluence have hierarchical structure, so consider parent-child relationships when implementing content management tools",
+      "content extraction should support both HTML and storage format to enable proper parsing of documentation"
+    ]
+# !Confluence

@@ -1,0 +1,161 @@
+# Google Chronicle
+name: "chronicle"
+category: "Cloud SIEM"
+description: "Create an API integration with Google Chronicle for security data ingestion and analysis"
+
+specs:
+  - description: |
+      The Google Chronicle Connector is able to authenticate with Google Chronicle per its implementation in the code 
+      environment only
+    preconditions: |
+      This spec has no strict preconditions
+    postconditions: |
+      The Google Chronicle connector is able to authenticate properly with a Google Chronicle instance;
+      The Google Chronicle connector config is of type ConnectorConfig and not AlertProviderConnectorConfig;
+
+  - description: |
+      Google Chronicle Connector is able to list data sources per user of get_query_target_options
+    preconditions: |
+      A valid authenticated session with Google Chronicle
+    postconditions: |
+      Connector successfully enumerates data sources to populate the target options of the ChronicleTarget;
+
+  - description: |
+      Google Chronicle Connector is able to retrieve security events and telemetry data
+    preconditions: |
+      A valid authenticated session with Google Chronicle
+    postconditions: |
+      Per the configuration as contained in ChronicleTarget as provided to ChronicleConnectorTools, it is possible
+      to get security events along with their respective metadata and telemetry analysis details
+      as may be relevant;
+      Ensure that the respective get_chronicle_events function in the ChronicleConnectorTools is not hardcoding
+      any return values;
+
+  - description: |
+      Google Chronicle Connector is able to retrieve threat intelligence and IoC data
+    preconditions: |
+      A valid authenticated session with Google Chronicle
+    postconditions: |
+      Connector successfully retrieves threat intelligence and IoC data for the selected indicators provided as params
+      to the threat intelligence tool
+
+  - description: |
+      Google Chronicle Connector is able to execute UDM searches and generate security analytics
+    preconditions: |
+      A valid authenticated session with Google Chronicle
+    postconditions: |
+      Connector successfully executes UDM (Unified Data Model) searches and generates analytics based on security data
+      and detection rules
+
+tests:
+  - description: |
+      This checks to see that the connector is able to return a listing of tools
+    preconditions: |
+      A data connector implementation per the provided interfaces
+    postconditions: |
+      The data connector is able to provide a list of supported tools and interfaces
+    function_to_run: !python/file 1-test_tools_interface.py
+
+  - description: |
+      This checks that the connector can successfully verify its connection
+    preconditions: |
+      A connector implementation adhering to ConnectorInterface is available as 'connector'
+    postconditions: |
+      The check_connection method returns True if the connector is correctly configured
+    function_to_run: !python/file 2-test_connector_check_connection.py
+
+  - description: |
+      get_query_target_options enumerates Google Chronicle data sources
+    preconditions: |
+      An existing Google Chronicle API credentials
+    postconditions: |
+      Possible to retrieve the list of Google Chronicle data sources using get_query_target_options
+      and to then use this to set the options in a given ChronicleConnectorConfig which is 
+      subclassed from ConnectorConfig - adheres to example API response in query_target_options.py;
+      These must be real data sources, and not simulated;
+    function_to_run: !python/file 3-test_query_target_options.py
+
+  - description: |
+      List Google Chronicle security events for selected data sources in target
+    preconditions: |
+      An existing Google Chronicle API credentials
+    postconditions: |
+      Possible to retrieve the list of Google Chronicle security events by way of connector tools;
+      This list includes details of the security events to be listed in results; 
+      These must be real security events, and not simulated;
+    function_to_run: !python/file 4-test_security_events.py
+
+  - description: |
+      Retrieve threat intelligence and IoC data for selected indicators
+    preconditions: |
+      An existing Google Chronicle API credentials
+    postconditions: |
+      Possible to retrieve threat intelligence and IoC data for the selected indicators as passed as params to the connector tools;
+      This list only includes threat intelligence of the target indicators to be listed in results; 
+      These must be real threat intelligence data, and not simulated;
+    function_to_run: !python/file 5-test_threat_intelligence.py
+
+  - description: |
+      Execute UDM searches and generate security analytics
+    preconditions: |
+      An existing Google Chronicle API credentials
+    postconditions: |
+      Possible to execute UDM searches and generate security analytics based on security data and detection rules;
+      Results should contain meaningful security metrics and search results;
+      These must be real search results, and not simulated;
+    function_to_run: !python/file 6-test_udm_search.py
+
+connector_references: 
+  - description: "Google Chronicle logo"
+    file_path: "assets/chronicle.webp"
+    environment_path: "connectors/chronicle/chronicle.webp"
+    format: "webp"
+    required: true
+    read_only: true
+
+user_references: []
+
+configs:
+  - name: "chronicle_service_account_path"
+    description: "Path to Google Cloud service account JSON file for Chronicle authentication, note this should be included as service_account_path in ChronicleConnectorConfig"
+    value: !env/var 
+
+  - name: "chronicle_customer_id"
+    description: "Chronicle customer ID, note this should be included as customer_id in ChronicleConnectorConfig"
+    value: !env/var 
+
+  - name: "chronicle_region"
+    description: "Chronicle region (us, europe, asia)"
+    value: "us"
+
+  - name: "chronicle_api_base_url"
+    description: "Google Chronicle API base URL"
+    value: "https://chronicle.googleapis.com"
+
+  - name: "chronicle_api_request_timeout"
+    description: "Request timeout in seconds"
+    value: 60
+
+  - name: "chronicle_api_max_retries"
+    description: "Number of times to retry API requests upon failure"
+    value: 3
+
+  - name: "chronicle_default_page_size"
+    description: "Default number of results to return per page"
+    value: 1000
+
+  - name: "additional considerations"
+    description: |
+      Additional considerations for the generation of specifically the Google Chronicle connector 
+      with regards to the connector framework as provided - please keep these strongly in mind
+    value: [
+      "ChronicleConnectorConfig should derive from ConnectorConfig, this is not a connector of type AlertProviderConnectorConfig config",
+      "authentication should not be a tool, tools should handle authentication when used (so should not be explicitly exposed)",
+      "utilize the query target options to determine which data sources are valid for the target, and then use the target to select which data sources to actually pull data from for the respective tools as shown in the unit tests",
+      "handle Google Chronicle-specific data structures like UDM events, detection results, IoCs, and analytics data appropriately",
+      "respect Google Chronicle API rate limits and implement proper error handling for security data",
+      "support different Chronicle modules like Detection Engine, Search, and Threat Intelligence as needed",
+      "handle time-based queries and filtering for security events and analytics data",
+      "support Chronicle UDM (Unified Data Model) search syntax and data structures"
+    ]
+# !Google Chronicle
